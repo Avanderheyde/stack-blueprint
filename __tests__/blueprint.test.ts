@@ -116,6 +116,12 @@ describe("automatic blueprint consultation", () => {
     ]);
     expect(intel.map((item) => item.title)).toEqual(["Strong", "Strong 2", "Strong 3"]);
 
+    const agentIntel = buildIntelPacket([
+      { id: "media", title: "New video model", why: "A multimodal image and video generation release.", relevance: 0.8, intel_page: "https://example.com/media" },
+      { id: "harness", title: "Harness design for coding agents", why: "Use a separate evaluator during software development.", relevance: 0.6, intel_page: "https://example.com/harness" },
+    ]);
+    expect(agentIntel.map((item) => item.title)).toEqual(["Harness design for coding agents"]);
+
     const catalog = buildCatalogPacket([
       { id: "related", title: "Related", relevance: 0.6, maintained: true, url: "https://example.com/related", why: "A nearby product pattern." },
       { id: "stale", title: "Stale", relevance: 0.8, maintained: false, url: "https://example.com/stale" },

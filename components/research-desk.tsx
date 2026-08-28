@@ -398,7 +398,9 @@ export function buildIntelPacket(items: IntelItem[]): IntelEvidence[] {
   const ranked = [...new Map(items.filter((item) => item.id).map((item) => [item.id, item])).values()]
     .filter((item) => (item.why || item.summary || item.description) && (item.intel_page || item.source_url || item.url))
     .sort((a, b) => (b.relevance ?? 0) - (a.relevance ?? 0));
-  const selected = ranked.filter((item) => (item.relevance ?? 0) >= 0.5).slice(0, 4);
+  const aboveThreshold = ranked.filter((item) => (item.relevance ?? 0) >= 0.5);
+  const agentPractice = aboveThreshold.filter((item) => /\b(coding|software|developer|development|context engineering|harness|agent workflow|coding agent|skills?|verification|planning|evaluator)\b/i.test(`${item.title} ${item.why ?? ""} ${item.summary ?? ""}`));
+  const selected = (agentPractice.length ? agentPractice : aboveThreshold).slice(0, 4);
   return selected.map((item) => ({
     id: item.id,
     title: item.title,
@@ -487,7 +489,7 @@ export function ResearchDesk() {
       `${project} similar product software stack tools frontend backend database auth storage analytics payments`,
       `${project} ${stackTerms} coding agent tools frontend design anti-slop UI polish accessibility hardening testing verification professional production`,
     ];
-    const intelQueries = [`${project} ${stackTerms} AI coding agent development advice Matt Pocock context engineering planning verification skills harness anti-slop QA latest best practices`];
+    const intelQueries = ["Matt Pocock AI coding agents skills context engineering planning verification harness design evaluator best practices"];
     const [toolSettled, intelSettled] = await Promise.all([
       Promise.allSettled(toolQueries.map((query) => searchApps(query, 8))),
       Promise.allSettled(intelQueries.map((query) => searchIntel(query, 8))),
