@@ -24,6 +24,22 @@ describe("public catalog proxy", () => {
     expect(fetchMock).toHaveBeenCalledOnce();
   });
 
+  it("allows canonical structured filters", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const response = await POST(request("search_tools", { query: "Expo testing", tool_type: "skill", capability: "test_software", limit: 6 }));
+    expect(response.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledOnce();
+  });
+
+  it("rejects invented taxonomy values before reaching upstream", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const response = await POST(request("search_tools", { query: "Expo testing", tool_type: "magic_widget", limit: 6 }));
+    expect(response.status).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("bounds semantic-search work before reaching upstream", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);

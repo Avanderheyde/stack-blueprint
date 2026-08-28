@@ -128,7 +128,9 @@ describe("automatic blueprint consultation", () => {
       { id: "related", title: "Related", relevance: 0.6, maintained: true, url: "https://example.com/related", why: "A nearby product pattern." },
       { id: "stale", title: "Stale", relevance: 0.8, maintained: false, url: "https://example.com/stale" },
       { id: "noise", title: "Noise", relevance: 0.2, maintained: true, url: "https://example.com/noise" },
+      { id: "typed", title: "Typed Skill", relevance: null, structured_match: true, tool_type: "skill", maintained: true, url: "https://example.com/typed" },
     ]);
-    expect(catalog.map((item) => item.title)).toEqual(["Related"]);
+    expect(catalog.map((item) => item.title)).toEqual(["Related", "Typed Skill"]);
+    expect(catalog[1]?.category).toBe("SKILL");
   });
 });

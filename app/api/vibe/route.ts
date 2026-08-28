@@ -1,4 +1,5 @@
 import { NextRequest } from "next/server";
+import { TOOL_CAPABILITIES, TOOL_DOMAINS, TOOL_INTERFACES, TOOL_TYPES } from "@/lib/vibeleaderboard";
 
 const UPSTREAM_MCP_URL =
   process.env.VIBELEADERBOARD_MCP_URL ?? "https://www.vibeleaderboard.ai/api/mcp";
@@ -6,6 +7,8 @@ const UPSTREAM_MCP_URL =
 const ALLOWED_TOOLS = new Set([
   "search_intel",
   "search_apps",
+  "search_tools",
+  "tool_taxonomy",
   "get_app",
   "what_changed",
   "latest_brief",
@@ -14,6 +17,8 @@ const ALLOWED_TOOLS = new Set([
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_BODY_BYTES = 12_000;
+const isMember = (values: readonly string[], value: unknown) =>
+  typeof value === "string" && values.includes(value);
 
 type RpcRequest = {
   jsonrpc?: unknown;
@@ -59,12 +64,26 @@ export async function POST(request: NextRequest) {
   const args = (rawArgs ?? {}) as Record<string, unknown>;
   const limit = Number(args.limit ?? 8);
 
-  if (toolName === "search_intel" || toolName === "search_apps") {
+  if (toolName === "search_intel" || toolName === "search_apps" || toolName === "search_tools") {
     if (typeof args.query !== "string" || !args.query.trim() || args.query.length > 500) {
       return Response.json({ error: "query must contain 1–500 characters." }, { status: 400 });
     }
     if (!Number.isInteger(limit) || limit < 1 || limit > 12) {
       return Response.json({ error: "limit must be an integer from 1–12." }, { status: 400 });
+    }
+  }
+
+  if (toolName === "search_tools") {
+    const filters = [
+      ["tool_type", TOOL_TYPES],
+      ["interface", TOOL_INTERFACES],
+      ["primary_domain", TOOL_DOMAINS],
+      ["capability", TOOL_CAPABILITIES],
+    ] as const;
+    for (const [key, values] of filters) {
+      if (args[key] != null && !isMember(values, args[key])) {
+        return Response.json({ error: `${key} must be a canonical taxonomy value.` }, { status: 400 });
+      }
     }
   }
 
