@@ -2,7 +2,7 @@
 
 ## Product context
 
-Stack Blueprint is the first consultation at the start of any software project. A builder describes one idea; the browser agent infers the project profile, consults a comprehensive decision taxonomy, VibeLeaderboard's public tool survey, and current Intel, then draws both the production stack and AI-building toolkit automatically. The memorable thing is: **the plan constructs itself in front of you, and every line can be opened and challenged.**
+Stack Blueprint is the first consultation at the start of any software project. A builder describes one idea; the browser agent infers the project profile, consults a comprehensive decision taxonomy, VibeLeaderboard's public tool survey, and current Intel, then draws both the production stack and AI-building toolkit automatically. The memorable thing is: **six plan modules draw themselves onto the blueprint, and each can be opened to inspect the decisions inside.**
 
 Audience: technical and AI-assisted builders choosing a new project's architecture, services, developer tools, and agent workflow. They need education and tradeoffs, not a generic list of fashionable products.
 
@@ -41,14 +41,14 @@ Survey yellow is reserved for the primary kickoff action, the selected option, l
 
 ## Layout
 
-- Working-instrument composition: masthead, compact project brief, ruled architecture drawing, field desk, build sheet.
-- Layers share a fixed rail/body anatomy and reveal vertically.
-- The evidence field desk is secondary and sticky on wide screens; it stacks below decisions on mobile.
+- Working-instrument composition: masthead, one-question brief, ruled architecture plan, optional module inspector, build sheet.
+- The 27 decisions are grouped into six asymmetric plan modules. The overview never exposes the full decision inventory at once.
+- Evidence is quiet provenance inside the module inspector, collapsed by default.
 - Corners are square. Borders are structural. No card shadows, bubbles, or ornamental containers.
 
 ## Motion
 
-- Newly revealed layers draw in with opacity and a short vertical translation under 240ms.
+- Modules arrive one at a time. Their structural lines draw with transform-only motion over roughly 480ms.
 - Locking uses color and line-weight state change, not bounce or celebration.
 - Never animate text while it is being read.
 - Reduced motion preserves the reveal hierarchy with near-instant transitions.
@@ -73,3 +73,4 @@ No gradients, rounded card grids, decorative icons, blobs, grain, faux 3D, gener
 - 2026-08-27: Corrected the scope from agent-system architecture to any software project. AI is an optional product layer and a separate builder-toolkit schedule.
 - 2026-08-27: Expanded the survey to every category in Arjay's Stack Picker plus architecture, security, AI coding agents, builder models, research, design assistance, skills, MCP, and independent QA.
 - 2026-08-27: Replaced the 27-question lock sequence with one-question intake, automatic catalog and Intel consultation, a staged self-drawing blueprint, expandable reasoning, and one plan-level approval.
+- 2026-08-27: Distilled the overview from 27 textual rows and a persistent evidence sidebar into six visual blueprint modules with a single on-demand inspector.

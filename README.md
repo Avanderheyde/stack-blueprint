@@ -4,7 +4,7 @@
 
 An open-source WebMCP consultant for the first decision of any software project: **what should we build it with, what AI tools should help us build it, and why?**
 
-A builder describes an idea in ordinary language. The WebMCP architect infers the project profile, searches VibeLeaderboard’s maintained public tool catalog, consults current Intel, and drafts the complete blueprint automatically. The stack draws itself on the page; every decision opens to reveal its reasoning, tradeoffs, and alternatives.
+A builder describes an idea in ordinary language. The WebMCP architect infers the project profile, searches VibeLeaderboard’s maintained public tool catalog, consults current Intel, and drafts the complete blueprint automatically. Six architectural modules draw themselves onto the plan; opening a module reveals its individual decisions, reasoning, tradeoffs, and alternatives.
 
 ## Complete decision coverage
 
@@ -14,7 +14,7 @@ The 27-layer blueprint includes:
 - **Product services:** styling/UI, ORM/data layer, identity, storage, search, CMS, transactional email, payments, product analytics, web analytics, monitoring/security, and CI/CD
 - **AI building toolkit:** coding agent, builder-model strategy, research/Intel, AI design assistance, repository skills/instructions, MCP and connected tools, and independent review/QA
 
-Every layer presents an architect pick plus three inspectable approaches with `best for` and `tradeoff` guidance. Unnecessary services are omitted automatically. The user can swap any recommendation and approve the entire blueprint at once instead of answering 27 setup questions.
+The overview stays deliberately sparse: six visual modules, a short preview of their picks, and one approval action. The 27 decisions remain available through progressive disclosure. Every decision presents an architect pick plus three alternatives with tradeoff guidance, and unnecessary services are omitted automatically.
 
 ## WebMCP collaboration
 
