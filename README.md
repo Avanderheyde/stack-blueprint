@@ -4,7 +4,7 @@
 
 An open-source WebMCP consultant for the first decision of any software project: **what should we build it with, what AI tools should help us build it, and why?**
 
-A browser agent consults the page’s complete stack taxonomy, VibeLeaderboard’s maintained public tool catalog, and current Intel. It explains alternatives and tradeoffs; the human explicitly locks each decision into an exportable project blueprint.
+A builder describes an idea in ordinary language. The WebMCP architect infers the project profile, searches VibeLeaderboard’s maintained public tool catalog, consults current Intel, and drafts the complete blueprint automatically. The stack draws itself on the page; every decision opens to reveal its reasoning, tradeoffs, and alternatives.
 
 ## Complete decision coverage
 
@@ -14,25 +14,26 @@ The 27-layer blueprint includes:
 - **Product services:** styling/UI, ORM/data layer, identity, storage, search, CMS, transactional email, payments, product analytics, web analytics, monitoring/security, and CI/CD
 - **AI building toolkit:** coding agent, builder-model strategy, research/Intel, AI design assistance, repository skills/instructions, MCP and connected tools, and independent review/QA
 
-Every layer presents three approaches with `best for` and `tradeoff` guidance. Any unnecessary layer can be explicitly omitted, so complete coverage does not force unnecessary services into the project.
+Every layer presents an architect pick plus three inspectable approaches with `best for` and `tradeoff` guidance. Unnecessary services are omitted automatically. The user can swap any recommendation and approve the entire blueprint at once instead of answering 27 setup questions.
 
 ## WebMCP collaboration
 
-The page registers seven visible tools:
+The page registers eight visible tools:
 
-- `begin_project_blueprint` — set the project type, stage, and primary constraint
+- `build_project_blueprint` — infer the profile, consult both evidence sources, and draft every decision from one project description
 - `inspect_project_blueprint` — inspect every decision and its tradeoffs
 - `survey_stack_tools` — find maintained candidates in the public tool catalog
 - `consult_stack_intel` — retrieve current, citable engineering evidence
 - `recommend_stack_option` — place a researched recommendation without committing it
 - `lock_stack_choice` — lock a decision only after the user approves it
+- `approve_project_blueprint` — approve the complete draft in one explicitly confirmed action
 - `render_project_blueprint` — produce the final software and AI build plan
 
 The same educational comparison flow remains usable manually in browsers without WebMCP.
 
 ## Why the WebMCP matters
 
-A plain agent answers from model recall and whatever context happens to be in the conversation. Stack Blueprint gives it a structured project profile, a comprehensive decision checklist, curated alternatives, visible user-owned state, current tool survey results, and citable Intel. The result is a better-informed consultation that remains auditable and editable on the page.
+A plain agent answers from model recall and whatever context happens to be in the conversation. Stack Blueprint gives it a structured project profile, a comprehensive decision checklist, curated alternatives, visible user-owned state, current tool survey results, and citable Intel. One orchestration tool performs the consultation and matching automatically; the user explores or corrects the result instead of operating the research workflow.
 
 ## Public evidence boundary
 

@@ -2,7 +2,7 @@
 
 ## Product context
 
-Stack Blueprint is the first consultation at the start of any software project. A builder's browser agent consults a comprehensive decision taxonomy, VibeLeaderboard's public tool survey, and current Intel to recommend both the production software stack and the AI toolkit used to build it. The memorable thing is: **the whole project is revealed one informed decision at a time, and the human owns every lock.**
+Stack Blueprint is the first consultation at the start of any software project. A builder describes one idea; the browser agent infers the project profile, consults a comprehensive decision taxonomy, VibeLeaderboard's public tool survey, and current Intel, then draws both the production stack and AI-building toolkit automatically. The memorable thing is: **the plan constructs itself in front of you, and every line can be opened and challenged.**
 
 Audience: technical and AI-assisted builders choosing a new project's architecture, services, developer tools, and agent workflow. They need education and tradeoffs, not a generic list of fashionable products.
 
@@ -35,7 +35,7 @@ Survey yellow is reserved for the primary kickoff action, the selected option, l
 - Each layer must show three structurally different approaches, not a vendor-logo collection.
 - Every option must expose `best for` and `tradeoff` before selection.
 - Agent recommendations may name a specific implementation after consulting the public tool survey and Intel. Intel citations must have been searched through the page.
-- A recommendation never silently becomes a decision. Only an explicit lock advances the drawing.
+- The architect drafts every decision automatically. Drafts are clearly labeled, remain editable, and become approved only through one explicit blueprint-level action.
 - Any layer may be explicitly omitted when it does not serve the project. Comprehensive coverage must not become forced complexity.
 - No transcripts, article bodies, private data, vanity inventory totals, or invented performance scores.
 
@@ -72,3 +72,4 @@ No gradients, rounded card grids, decorative icons, blobs, grain, faux 3D, gener
 - 2026-08-27: Made explicit human locking the central trust and progression mechanic.
 - 2026-08-27: Corrected the scope from agent-system architecture to any software project. AI is an optional product layer and a separate builder-toolkit schedule.
 - 2026-08-27: Expanded the survey to every category in Arjay's Stack Picker plus architecture, security, AI coding agents, builder models, research, design assistance, skills, MCP, and independent QA.
+- 2026-08-27: Replaced the 27-question lock sequence with one-question intake, automatic catalog and Intel consultation, a staged self-drawing blueprint, expandable reasoning, and one plan-level approval.
