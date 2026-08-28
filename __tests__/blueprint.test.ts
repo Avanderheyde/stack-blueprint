@@ -39,7 +39,7 @@ describe("automatic blueprint consultation", () => {
 
     expect(names).toEqual(expect.arrayContaining([
       "Expo", "React Native", "NativeWind", "Supabase", "EAS Build",
-      "Codex", "GPT-5.6 Sol", "frontend-design", "Impeccable", "supabase", "verification",
+      "Codex", "GPT-5.6 Sol", "React Doctor", "Expo Doctor", "frontend-design", "Impeccable", "Supabase MCP", "supabase", "verification",
     ]));
     expect(names).not.toContain("OpenAI Responses API");
     expect(names).not.toContain("Cloudinary");
@@ -75,7 +75,19 @@ describe("automatic blueprint consultation", () => {
     const project = "A straightforward customer support web app";
     const profile = inferProfile(project);
     const names = specificStackFor(project, profile, draftChoices(project, profile)).map((pick) => pick.name);
-    expect(names).toEqual(expect.arrayContaining(["frontend-design", "Impeccable", "verification"]));
+    expect(names).toEqual(expect.arrayContaining(["React Doctor", "frontend-design", "Impeccable", "Sentry MCP", "Vercel MCP", "verification"]));
+  });
+
+  it("only adds companion agent tools when their parent technology is selected", () => {
+    const staticProject = "A static portfolio with no accounts or payments";
+    const profile = inferProfile(staticProject);
+    const names = specificStackFor(staticProject, profile, draftChoices(staticProject, profile)).map((pick) => pick.name);
+    expect(names).not.toEqual(expect.arrayContaining(["React Doctor", "Supabase MCP", "Sentry MCP", "Stripe MCP", "Vercel MCP"]));
+
+    const paidApp = "A production React SaaS app with subscriptions";
+    const paidProfile = inferProfile(paidApp);
+    const paidNames = specificStackFor(paidApp, paidProfile, draftChoices(paidApp, paidProfile)).map((pick) => pick.name);
+    expect(paidNames).toEqual(expect.arrayContaining(["Supabase MCP", "Sentry MCP", "Stripe MCP", "Vercel MCP"]));
   });
 
   it("keeps a local-only medical product off cloud data and telemetry services", () => {

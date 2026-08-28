@@ -4,7 +4,7 @@
 
 An open-source WebMCP consultant for the first decision of any software project: **what should we build it with, what AI tools should help us build it, and why?**
 
-A builder describes an idea in ordinary language. The WebMCP architect infers the project profile, searches VibeLeaderboard’s maintained public catalog for related products and execution tools, gathers a cited Intel packet, and drafts a specific build system. A familiar product stack may still be the right answer; the extra value is the AI execution layer—harness, model, frontend direction, anti-slop polish, hardening, verification, and release gates. The calling agent reasons over the evidence rather than copying it and can apply a researched refinement before presenting the answer.
+A builder describes an idea in ordinary language. The WebMCP architect infers the project profile, searches VibeLeaderboard’s maintained public catalog for related products and execution tools, gathers a cited Intel packet, and drafts a specific build system. A familiar product stack may still be the right answer; the extra value is matching every major product choice to the AI tools that make it easier to execute—for example Supabase MCP for Supabase, React Doctor for React, and Sentry MCP for Sentry—plus harness, model, design, anti-slop polish, verification, and release gates.
 
 ## What it selects
 
@@ -31,7 +31,7 @@ The same automatic build and click-to-explain flow remains usable manually in br
 
 ## Why the WebMCP matters
 
-A plain agent may choose the same sensible framework and backend. Stack Blueprint adds what usually gets omitted: a structured execution system, current execution-tool candidates, frontend and anti-slop skills, hardening, verification, release gates, related VibeLeaderboard entries, and citable Intel. The initial stack remains a hypothesis: a similar app is not proof, and the calling agent must assess whether each observed pattern or tool actually improves this project.
+A plain agent may choose the same sensible framework and backend. Stack Blueprint turns those choices into an empowered agent workspace: selected products automatically trigger their companion MCPs, diagnostics, implementation skills, hardening, verification, and release gates. It also returns current execution-tool candidates, related VibeLeaderboard entries, and citable Intel. The initial stack remains a hypothesis: a similar app is not proof, and the calling agent must assess whether each observed pattern or tool actually improves this project.
 
 ## Public evidence boundary
 
