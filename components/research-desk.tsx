@@ -196,7 +196,7 @@ export function inferProfile(project: string) {
     ? "browser-extension" : includesAny(text, ["mobile", "iphone", "ios", "android", "push notification"])
     ? "mobile" : includesAny(text, ["api", "service", "webhook"])
       ? "service" : includesAny(text, ["automation", "workflow", "bot"])
-        ? "automation" : includesAny(text, ["command-line", "command line", "library", "package", "sdk", "cli"])
+        ? "automation" : (includesAny(text, ["command-line", "command line", "library", "package", "sdk"]) || /\bcli\b/.test(text))
           ? "library" : includesAny(text, ["desktop", "for mac", "mac app", "windows app", "menu bar"])
             ? "desktop" : includesAny(text, ["multiplayer", "browser game", "mobile game", "video game"])
               ? "game" : includesAny(text, ["online shop", "online store", "ecommerce", "e-commerce", "storefront", "shopping cart"])
@@ -408,13 +408,22 @@ export function deferredSuggestionsFor(project: string, profile: ReturnType<type
   return suggestions;
 }
 
-export function buildIntelPacket(items: IntelItem[]): IntelEvidence[] {
+export function buildIntelPacket(items: IntelItem[], focusText = ""): IntelEvidence[] {
   const ranked = [...new Map(items.filter((item) => item.id).map((item) => [item.id, item])).values()]
     .filter((item) => (item.why || item.summary || item.description) && (item.intel_page || item.source_url || item.url))
     .sort((a, b) => (b.relevance ?? 0) - (a.relevance ?? 0));
   const aboveThreshold = ranked.filter((item) => (item.relevance ?? 0) >= 0.5);
   const agentPractice = aboveThreshold.filter((item) => /\b(coding|software|developer|development|context engineering|harness|agent workflow|coding agent|skills?|verification|planning|evaluator)\b/i.test(`${item.title} ${item.why ?? ""} ${item.summary ?? ""}`));
-  const selected = (agentPractice.length ? agentPractice : aboveThreshold).slice(0, 4);
+  const stopWords = new Set(["about", "after", "agent", "application", "build", "building", "implementation", "project", "quality", "software", "testing", "their", "using", "workflow"]);
+  const focusTerms = [...new Set(focusText.toLowerCase().match(/[a-z0-9-]{5,}/g) ?? [])].filter((term) => !stopWords.has(term));
+  const focused = focusTerms.length ? ranked.filter((item) => {
+    if ((item.relevance ?? 0) < 0.4) return false;
+    const evidence = `${item.title} ${item.why ?? ""} ${item.summary ?? ""}`.toLowerCase();
+    return focusTerms.some((term) => evidence.includes(term));
+  }) : [];
+  const selected = focusTerms.length
+    ? [...new Map([...focused.slice(0, 2), ...agentPractice.slice(0, 2), ...aboveThreshold].map((item) => [item.id, item])).values()].slice(0, 4)
+    : (agentPractice.length ? agentPractice : aboveThreshold).slice(0, 4);
   const mapped = selected.map((item) => {
     const evidence = `${item.title} ${item.why ?? ""} ${item.summary ?? ""} ${(item.takeaways ?? []).join(" ")}`;
     const instruction = /evaluator|over-praise|planner|generator/i.test(evidence)
@@ -548,10 +557,17 @@ export function ResearchDesk() {
     draftPicks.filter((pick) => connectorParents.includes(pick.name)).forEach((pick) => {
       toolQueries.push({ query: `${pick.name} official MCP server for development`, filters: { tool_type: "mcp_server", interface: "mcp" }, take: 1, requiredTitle: pick.name });
     });
+    const riskQuery = profile.projectKind === "service"
+      ? "API load testing observability event streaming schema reliability"
+      : profile.projectKind === "mobile"
+        ? "React Native mobile interface performance accessibility simulator testing"
+        : profile.projectKind === "static-site"
+          ? "frontend visual design accessibility image performance SEO"
+          : "frontend design accessibility performance authentication billing reliability";
     const intelQueries = [
       "coding agent harness context engineering project instructions acceptance criteria independent evaluator verification quality gates",
-      "harness design long-running application development independent evaluator context reset coding agents",
-      `${project} ${stackTerms} implementation risks agent workflow testing design quality`,
+      `${project} ${stackTerms} ${riskQuery} implementation guidance`,
+      `${stackTerms} ${riskQuery} architecture testing production failure modes`,
     ];
     const [toolSettled, intelSettled] = await Promise.all([
       Promise.allSettled(toolQueries.map(({ query, filters }) => searchTools(query, filters, 6))),
@@ -569,7 +585,7 @@ export function ResearchDesk() {
     const consultedIntel = intelSettled.flatMap((result) => result.status === "fulfilled" ? result.value.items : []);
     const uniqueTools = [...new Map(surveyedTools.map((item) => [item.id, item])).values()];
     const uniqueIntel = [...new Map(consultedIntel.map((item) => [item.id, item])).values()];
-    const research = buildIntelPacket(uniqueIntel);
+    const research = buildIntelPacket(uniqueIntel, `${project} ${stackTerms} ${riskQuery}`);
     const execution = buildCatalogPacket(executionApps, draftPicks.filter((pick) => pick.branch === "build").map((pick) => pick.name));
     const attempts = toolSettled.length + intelSettled.length;
     const failures = [...toolSettled, ...intelSettled].filter((result) => result.status === "rejected").length;

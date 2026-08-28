@@ -31,6 +31,10 @@ describe("automatic blueprint consultation", () => {
     expect(constrainedChoices.payments).toBe("not-needed");
   });
 
+  it("does not mistake client files for a CLI library", () => {
+    expect(inferProfile("A SaaS web app where design teams review client files").projectKind).toBe("web");
+  });
+
   it("returns specific software, harness, model, and skill picks", () => {
     const project = "A silly mobile app for roommates with photo uploads and push notifications, no payments";
     const profile = inferProfile(project);
@@ -123,6 +127,12 @@ describe("automatic blueprint consultation", () => {
     ]);
     expect(agentIntel.map((item) => item.title)).toEqual(["Harness design for coding agents"]);
     expect(agentIntel[0]?.instruction).toMatch(/acceptance criteria|fresh evaluator/i);
+
+    const focusedIntel = buildIntelPacket([
+      { id: "generic", title: "Agent harness advice", why: "Use a fresh evaluator for software work.", relevance: 0.8, intel_page: "https://example.com/generic" },
+      { id: "design", title: "Design systems for React", why: "Keep interface tokens consistent.", relevance: 0.45, intel_page: "https://example.com/design" },
+    ], "React interface design accessibility");
+    expect(focusedIntel[0]?.title).toBe("Design systems for React");
 
     const catalog = buildCatalogPacket([
       { id: "related", title: "Related", relevance: 0.6, maintained: true, url: "https://example.com/related", why: "A nearby product pattern." },
