@@ -1,39 +1,36 @@
 # Stack Blueprint
 
-![Stack Blueprint: Survey. Decide. Lock.](./assets/stack-blueprint-devpost-thumbnail.png)
+![Stack Blueprint](./assets/stack-blueprint-devpost-thumbnail.png)
 
 An open-source WebMCP consultant for the first decision of any software project: **what should we build it with, what AI tools should help us build it, and why?**
 
-A builder describes an idea in ordinary language. The WebMCP architect infers the project profile, searches VibeLeaderboard’s maintained public tool catalog, consults current Intel, and drafts the complete blueprint automatically. Six architectural modules draw themselves onto the plan; opening a module reveals its individual decisions, reasoning, tradeoffs, and alternatives.
+A builder describes an idea in ordinary language. The WebMCP architect infers the project profile, searches VibeLeaderboard’s maintained public tool catalog, consults current Intel, and selects a specific build system automatically. The recommended product stack, connected services, and AI build setup draw themselves into one connected logo graph. Click any logo to see its role, rationale, and official source.
 
-## Complete decision coverage
+## What it selects
 
-The 27-layer blueprint includes:
+The internal consultation covers:
 
 - **Foundation:** system shape, interface, runtime, data, AI strategy, integrations, engineering workflow, and delivery
 - **Product services:** styling/UI, ORM/data layer, identity, storage, search, CMS, transactional email, payments, product analytics, web analytics, monitoring/security, and CI/CD
 - **AI building toolkit:** coding agent, builder-model strategy, research/Intel, AI design assistance, repository skills/instructions, MCP and connected tools, and independent review/QA
 
-The overview stays deliberately sparse: six visual modules, a short preview of their picks, and one approval action. The 27 decisions remain available through progressive disclosure. Every decision presents an architect pick plus three alternatives with tradeoff guidance, and unnecessary services are omitted automatically.
+The overview shows only the answer: exact products, frameworks, services, coding harness, builder model, repository skills, CI, research, and verification tools. It omits unnecessary services automatically. Rationale stays behind each logo so the initial result remains easy to scan; it does not present an alternative-choice grid unless a user explicitly asks for one.
 
 ## WebMCP collaboration
 
-The page registers eight visible tools:
+The page registers five visible tools:
 
 - `build_project_blueprint` — infer the profile, consult both evidence sources, and draft every decision from one project description
-- `inspect_project_blueprint` — inspect every decision and its tradeoffs
+- `inspect_project_blueprint` — inspect the complete exact stack or one selected pick
 - `survey_stack_tools` — find maintained candidates in the public tool catalog
 - `consult_stack_intel` — retrieve current, citable engineering evidence
-- `recommend_stack_option` — place a researched recommendation without committing it
-- `lock_stack_choice` — lock a decision only after the user approves it
-- `approve_project_blueprint` — approve the complete draft in one explicitly confirmed action
 - `render_project_blueprint` — produce the final software and AI build plan
 
-The same educational comparison flow remains usable manually in browsers without WebMCP.
+The same automatic build and click-to-explain flow remains usable manually in browsers without WebMCP.
 
 ## Why the WebMCP matters
 
-A plain agent answers from model recall and whatever context happens to be in the conversation. Stack Blueprint gives it a structured project profile, a comprehensive decision checklist, curated alternatives, visible user-owned state, current tool survey results, and citable Intel. One orchestration tool performs the consultation and matching automatically; the user explores or corrects the result instead of operating the research workflow.
+A plain agent answers from model recall and whatever context happens to be in the conversation. Stack Blueprint gives it a structured project profile, a comprehensive decision checklist, current tool survey results, and citable Intel. One orchestration tool performs the consultation and matching automatically; the user reviews the answer instead of operating the research workflow.
 
 ## Public evidence boundary
 

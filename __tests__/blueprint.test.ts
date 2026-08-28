@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { draftChoices, inferProfile } from "@/components/research-desk";
+import { draftChoices, inferProfile, specificStackFor } from "@/components/research-desk";
 
 describe("automatic blueprint consultation", () => {
   it("infers a playful mobile prototype without asking stack questions", () => {
@@ -21,5 +21,18 @@ describe("automatic blueprint consultation", () => {
     const choices = draftChoices(project, inferProfile(project));
     expect(choices.cms).toBe("not-needed");
     expect(choices.payments).toBe("not-needed");
+  });
+
+  it("returns specific software, harness, model, and skill picks", () => {
+    const project = "A silly mobile app for roommates with photo uploads and push notifications";
+    const profile = inferProfile(project);
+    const picks = specificStackFor(project, profile, draftChoices(project, profile));
+    const names = picks.map((pick) => pick.name);
+
+    expect(names).toEqual(expect.arrayContaining([
+      "Expo", "React Native", "NativeWind", "Supabase", "Cloudinary", "EAS Build",
+      "Codex", "GPT-5.6 Sol", "frontend-design", "supabase", "verification",
+    ]));
+    expect(picks.every((pick) => pick.why && pick.sourceUrl)).toBe(true);
   });
 });
