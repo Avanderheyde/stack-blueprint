@@ -39,7 +39,8 @@ describe("automatic blueprint consultation", () => {
 
     expect(names).toEqual(expect.arrayContaining([
       "Expo", "React Native", "NativeWind", "Supabase", "EAS Build",
-      "Codex", "GPT-5.6 Sol", "React Doctor", "Expo Doctor", "frontend-design", "Impeccable", "Supabase MCP", "supabase", "verification",
+      "Codex", "GPT-5.6 Sol", "React Doctor", "Expo MCP", "expo-project-structure", "expo-design-system", "expo-native-ui", "expo-animation", "expo-tailwind-setup", "expo-router",
+      "Callstack React Native Skills", "Expo Doctor", "agent-device", "Supabase MCP", "supabase", "verification",
     ]));
     expect(names).not.toContain("OpenAI Responses API");
     expect(names).not.toContain("Cloudinary");
@@ -75,7 +76,7 @@ describe("automatic blueprint consultation", () => {
     const project = "A straightforward customer support web app";
     const profile = inferProfile(project);
     const names = specificStackFor(project, profile, draftChoices(project, profile)).map((pick) => pick.name);
-    expect(names).toEqual(expect.arrayContaining(["React Doctor", "frontend-design", "Impeccable", "Sentry MCP", "Vercel MCP", "verification"]));
+    expect(names).toEqual(expect.arrayContaining(["React Doctor", "React Best Practices", "Impeccable", "Sentry MCP", "Vercel MCP", "verification"]));
   });
 
   it("only adds companion agent tools when their parent technology is selected", () => {
@@ -121,6 +122,7 @@ describe("automatic blueprint consultation", () => {
       { id: "harness", title: "Harness design for coding agents", why: "Use a separate evaluator during software development.", relevance: 0.6, intel_page: "https://example.com/harness" },
     ]);
     expect(agentIntel.map((item) => item.title)).toEqual(["Harness design for coding agents"]);
+    expect(agentIntel[0]?.instruction).toMatch(/acceptance criteria|fresh evaluator/i);
 
     const catalog = buildCatalogPacket([
       { id: "related", title: "Related", relevance: 0.6, maintained: true, url: "https://example.com/related", why: "A nearby product pattern." },

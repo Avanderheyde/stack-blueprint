@@ -13,6 +13,7 @@ export type IntelItem = {
   summary?: string | null;
   description?: string | null;
   why?: string | null;
+  takeaways?: string[] | null;
   intel_kind?: string | null;
   category?: string | null;
   relevance?: number | null;
@@ -98,6 +99,7 @@ export function sanitizeIntelItem(value: unknown): IntelItem {
     summary: text(item.summary, 1200),
     description: text(item.description, 1200),
     why: text(item.why, 1600),
+    takeaways: Array.isArray(item.takeaways) ? item.takeaways.slice(0, 8).map((value) => text(value, 900)).filter((value): value is string => Boolean(value)) : null,
     intel_kind: text(item.intel_kind, 40),
     category: text(item.category, 100),
     relevance: typeof item.relevance === "number" && Number.isFinite(item.relevance) ? item.relevance : null,

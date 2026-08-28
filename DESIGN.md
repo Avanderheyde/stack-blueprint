@@ -8,13 +8,14 @@ Audience: technical and AI-assisted builders choosing a new project's architectu
 
 ## Aesthetic direction
 
-A clean specification sheet, not a SaaS dashboard and not retro blueprint cosplay. Light, direct, precise, and visibly under construction. Blueprint connection diagrams inform the structure; no source is copied visually.
+An architect's drafting desk and issued construction drawing set, not a SaaS dashboard, a selectable logo catalog, or retro blueprint cosplay. Light, direct, precise, and visibly under construction. Technical lettering, measured rules, sheet identifiers, revision marks, and plan symbols differentiate it from Arjay's oversized-sans stack-picker composition.
 
 Decoration level: low. Every line denotes structure, state, measurement, or hierarchy.
 
 ## Typography
 
-- Barlow Condensed: upright display, section titles, tool names, and the wordmark.
+- Tektur: angular technical display, section titles, tool names, and the wordmark.
+- IBM Plex Sans: readable brief and explanatory copy.
 - IBM Plex Mono: labels, controls, annotations, and explanatory copy.
 - Tabular numerals everywhere. Uppercase tracking only for labels.
 - No italic wordmark, serif display face, or system font.
@@ -41,7 +42,7 @@ Construction blue is reserved for the primary kickoff action, active drawing lin
 
 ## Layout
 
-- Composition: masthead, one-question brief, narrator strip, project root, and three connected branches—product stack, connected services, and AI build setup.
+- Composition: masthead, one-question brief, narrator strip, project root, and a drawing set. The equipped AI workspace is the primary full-width sheet; application and ship/operate schedules are supporting sheets below it.
 - Tool nodes contain a logo, name, and quiet grey category label. The overview never exposes explanatory paragraphs or option grids.
 - Rationale and provenance live in the on-demand tool inspector.
 - Borders and connecting lines are structural. Shadows appear only behind the focused inspector.
@@ -80,3 +81,5 @@ No comparison grids, alternative cards, dense explanatory copy in the overview, 
 - 2026-08-28: Clarified the product's differentiation: conventional stacks are acceptable; the WebMCP adds a researched AI execution layer with frontend direction, anti-slop refinement, hardening, verification, and current tool candidates.
 - 2026-08-28: Made the AI build layer conditional on the product stack. Major selections now pull their companion MCPs and diagnostics so the calling agent is equipped to implement and operate the chosen technologies.
 - 2026-08-28: Grouped the AI layer into harness/model, MCPs, skills, diagnostics/CLIs, and Intel; moved CI into services and delivery. Prototype-only production tools remain out of the graph and are returned as intentional deferrals.
+- 2026-08-28: Differentiated the product from Arjay's Stack Picker by replacing the oversized condensed-sans/logo-grid grammar with an architectural drawing-set hierarchy, Tektur technical lettering, sheet identifiers, revision marks, square plan nodes, and an AI-workspace-first composition.
+- 2026-08-28: Replaced the generic frontend-design default with stack-specific expert tooling. Expo projects now receive official Expo MCP and exact Expo skills, Callstack React Native skills, React Doctor, Expo Doctor, and agent-device; React web projects receive deterministic React diagnostics, React best practices, Impeccable, and end-to-end verification.

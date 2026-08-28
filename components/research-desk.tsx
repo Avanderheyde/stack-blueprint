@@ -13,7 +13,7 @@ type Layer = { id: string; number: string; title: string; question: string; draw
 type RenderedPlan = { title: string; summary: string; buildOrder: string[] };
 type StackPick = { id: string; name: string; kind: string; branch: "product" | "services" | "build"; icon: string; role: string; why: string; sourceUrl: string };
 type DeferredSuggestion = { name: string; kind: string; when: string; why: string };
-type IntelEvidence = { id: string; title: string; takeaway: string; intelUrl: string; sourceUrl: string | null; source: string | null; publishedAt: string | null; relevance: number | null };
+type IntelEvidence = { id: string; title: string; takeaway: string; instruction: string; intelUrl: string; sourceUrl: string | null; source: string | null; publishedAt: string | null; relevance: number | null };
 type CatalogEvidence = { id: string; title: string; category: string | null; relevance: number | null; maintained: boolean | null; url: string; why: string };
 
 const PRIORITIES: Array<{ id: Priority; label: string }> = [
@@ -360,11 +360,21 @@ export function specificStackFor(project: string, profile: ReturnType<typeof inf
   const hasPick = (name: string) => picks.some((item) => item.name === name);
   pick("codex", "Codex", "Agent harness", "build", modelLogo, "Primary coding-agent workspace", "Codex coordinates long-running implementation, review, worktrees, skills, and connected tools in one supervised harness.", "https://openai.com/index/introducing-the-codex-app/");
   pick("gpt56", profile.priority === "cost" ? "GPT-5.6 Terra" : "GPT-5.6 Sol", "Builder model", "build", modelLogo, "Default implementation model", profile.priority === "cost" ? "Terra balances strong coding work with lower cost for an early project." : "Sol is the strongest default for architecture, implementation, debugging, and design judgment in Codex.", "https://developers.openai.com/api/docs/guides/latest-model");
-  if (["React", "React Native", "Next.js"].some(hasPick)) pick("react-doctor", "React Doctor", "Agent diagnostic", "build", logo("react"), "React code-health review", "Run React Doctor during implementation and in CI so the coding agent gets concrete diagnostics for component structure, correctness, performance, and maintainability instead of relying only on self-review.", "https://www.react.doctor/");
-  if (profile.projectKind === "mobile") pick("expo-doctor", "Expo Doctor", "Framework diagnostic", "build", logo("expo"), "Expo dependency and configuration checks", "Run Expo Doctor before native builds to catch incompatible packages, configuration errors, and React Native ecosystem problems early.", "https://docs.expo.dev/develop/tools/");
-  if (hasUi) {
-    pick("frontend-skill", "frontend-design", "Agent skill", "build", skillLogo, "Frontend direction skill", "Load this before interface work so the agent establishes audience, product tone, and a deliberate visual direction instead of generating a default SaaS aesthetic.", "https://github.com/anthropics/skills");
-    pick("impeccable-skill", "Impeccable", "Agent skill suite", "build", skillLogo, "Anti-slop polish and hardening", "After the interface works, use its critique, audit, harden, and polish passes to remove generic AI tells, cover edge cases, and raise the app from functional to professional.", "https://github.com/pbakaus/impeccable");
+  if (["React", "React Native", "Next.js"].some(hasPick)) pick("react-doctor", "React Doctor", "Diagnostic CLI", "build", logo("react"), "Deterministic React code-health review", "Run React Doctor after meaningful UI changes and in CI. It catches state and effect misuse, duplicated JSX, accessibility gaps, and performance traps that a coding agent can overlook when reviewing its own output.", "https://www.react.doctor/");
+  if (profile.projectKind === "mobile") {
+    pick("expo-mcp", "Expo MCP", "Agent MCP", "build", logo("expo"), "Live Expo, EAS, simulator, and React Native context", "Install the official Expo plugin so the agent can search version-current Expo docs, install SDK-compatible packages, inspect EAS builds, read TestFlight crash data, and capture simulator screenshots instead of guessing from stale training data.", "https://docs.expo.dev/mcp/");
+    pick("expo-project-skill", "expo-project-structure", "Agent skill", "build", skillLogo, "Expo project architecture", "Use the official Expo project-structure skill when scaffolding this new app so routes, feature code, assets, and native boundaries begin in the framework's supported shape.", "https://docs.expo.dev/skills/");
+    pick("expo-design-skill", "expo-design-system", "Agent skill", "build", skillLogo, "Mobile design-system discipline", "Use Expo's design-system skill to define tokens and reusable component conventions before generating screens, preventing one-off hardcoded styles and visual drift.", "https://docs.expo.dev/skills/");
+    pick("expo-native-ui-skill", "expo-native-ui", "Agent skill", "build", skillLogo, "Native-feeling controls and platform conventions", "Use Expo's native UI skill when building screens so controls, semantic colors, touch targets, sheets, and platform behavior feel at home on iOS and Android rather than like a web page in a phone frame.", "https://docs.expo.dev/skills/");
+    pick("expo-animation-skill", "expo-animation", "Agent skill", "build", skillLogo, "Native motion, gestures, haptics, and transitions", "Use Expo's official animation skill for Reanimated, Gesture Handler, haptics, sheets, and screen transitions. It forces the agent to decide whether motion belongs, which thread and properties to use, and how it should degrade.", "https://docs.expo.dev/skills/");
+    if (hasPick("NativeWind")) pick("expo-tailwind-skill", "expo-tailwind-setup", "Agent skill", "build", skillLogo, "NativeWind and Tailwind setup", "Use Expo's official Tailwind setup skill for the supported NativeWind path and compatible package versions instead of copying a web Tailwind configuration into React Native.", "https://docs.expo.dev/skills/");
+    pick("expo-router-skill", "expo-router", "Agent skill", "build", skillLogo, "Native navigation implementation", "Use the official Expo Router skill for route groups, typed deep links, native stacks, sheets, headers, and platform navigation conventions.", "https://docs.expo.dev/skills/");
+    pick("callstack-rn-skills", "Callstack React Native Skills", "Agent skill suite", "build", skillLogo, "Production React Native performance and testing", "Add Callstack's maintained React Native skills for performance, navigation, testing, upgrades, and dogfooding. They complement Expo's framework guidance with production React Native practice.", "https://github.com/callstackincubator/agent-skills");
+    pick("expo-doctor", "Expo Doctor", "Diagnostic CLI", "build", logo("expo"), "Expo dependency and configuration checks", "Run Expo Doctor before native builds to catch incompatible packages, configuration errors, and React Native ecosystem problems early.", "https://docs.expo.dev/develop/tools/");
+    pick("agent-device", "agent-device", "Agent QA CLI", "build", skillLogo, "Operate and verify the running mobile app", "Give the agent a simulator feedback loop: inspect UI state, tap through flows, collect logs and network evidence, capture screenshots, and profile performance instead of declaring success from source code alone.", "https://docs.expo.dev/agents/agent-device/");
+  } else if (hasUi) {
+    if (["React", "Next.js"].some(hasPick)) pick("react-best-practices", "React Best Practices", "Agent skill", "build", skillLogo, "React implementation and performance review", "Use Vercel's React best-practices skill while implementing and reviewing components so data fetching, rendering, bundle size, and composition follow production patterns rather than plausible-looking defaults.", "https://vercel.com/docs");
+    pick("impeccable-skill", "Impeccable", "Agent skill suite", "build", skillLogo, "Design context, critique, hardening, and anti-slop polish", "Establish the product's audience and visual contract first, then run focused critique, typography, layout, hardening, accessibility, and polish passes. This replaces a generic one-size-fits-all frontend prompt with a deliberate review pipeline.", "https://github.com/pbakaus/impeccable");
   }
   if (usesSupabase) {
     pick("supabase-mcp", "Supabase MCP", "Agent MCP", "build", logo("supabase"), "Scoped database and platform access", "Connect the official MCP server at project scope—prefer read-only and the minimum feature groups—so the agent can inspect current docs, schema, migrations, functions, and debugging context instead of guessing.", "https://supabase.com/docs/guides/ai-tools/mcp");
@@ -377,7 +387,7 @@ export function specificStackFor(project: string, profile: ReturnType<typeof inf
   if (profile.projectKind === "commerce") pick("shopify-dev-mcp", "Shopify Dev MCP", "Agent tool", "build", logo("shopify"), "Current Shopify implementation guidance", "Give the coding agent scoped access to current Shopify documentation and schema guidance instead of relying on stale platform memory.", "https://shopify.dev/docs/apps/build/devmcp");
   pick("verification-skill", "verification", "Agent skill", "build", skillLogo, "End-to-end verification skill", "Require this before shipping so the agent checks the complete interface, API, data, and deployment story.", "https://playwright.dev/");
   pick("github-actions", "GitHub Actions", "CI/CD", "services", logo("githubactions"), "Automated release gates", "Run tests, type checks, and builds on every pull request so agent output cannot bypass deterministic checks.", "https://docs.github.com/actions");
-  pick("vibe-intel", "Vibe Intel", "Research Intel", "build", "/icon.svg", "VibeLeaderboard decision context", "The blueprint build retrieves cited Intel and related catalog context, then returns both to the calling agent alongside the selected stack.", "https://www.vibeleaderboard.ai/intel");
+  pick("vibe-intel", "Vibe Intel", "Execution playbook", "build", "/icon.svg", "Project-specific instructions backed by current sources", "The blueprint consults VibeLeaderboard Intel, filters it to this project's engineering risks, and converts relevant evidence into instructions the coding agent can execute. Unrelated news and raw article summaries are discarded.", "https://www.vibeleaderboard.ai/intel");
 
   if (includesAny(text, ["search", "catalog", "directory"])) pick("typesense", "Typesense", "Search service", "services", logo("typesense"), "Fast typo-tolerant search", "Typesense adds useful relevance and typo tolerance without the operational weight of a large search cluster.", "https://typesense.org/docs/");
   return picks;
@@ -401,16 +411,30 @@ export function buildIntelPacket(items: IntelItem[]): IntelEvidence[] {
   const aboveThreshold = ranked.filter((item) => (item.relevance ?? 0) >= 0.5);
   const agentPractice = aboveThreshold.filter((item) => /\b(coding|software|developer|development|context engineering|harness|agent workflow|coding agent|skills?|verification|planning|evaluator)\b/i.test(`${item.title} ${item.why ?? ""} ${item.summary ?? ""}`));
   const selected = (agentPractice.length ? agentPractice : aboveThreshold).slice(0, 4);
-  return selected.map((item) => ({
+  const mapped = selected.map((item) => {
+    const evidence = `${item.title} ${item.why ?? ""} ${item.summary ?? ""} ${(item.takeaways ?? []).join(" ")}`;
+    const instruction = /evaluator|over-praise|planner|generator/i.test(evidence)
+      ? "Define acceptance criteria before implementation, then have a fresh evaluator review the finished result instead of letting the builder grade its own work."
+      : /eval|quality gate|test suite|verification/i.test(evidence)
+          ? "Turn the brief into executable gates - type checks, tests, visual verification, and task-specific acceptance checks - and require evidence before marking work complete."
+        : /context|workspace|AGENTS\.md|repo root|compaction/i.test(evidence)
+          ? "Write project commands, constraints, architecture, and quality gates into repository context; keep tasks bounded and start a fresh context when the working history becomes noisy."
+          : /harness|tools|memory|permissions|receipt/i.test(evidence)
+            ? "Treat the agent harness as part of the product: scope tool permissions, record consequential actions, and verify that mutations reached the user-visible system."
+            : `Apply this project-relevant guidance during implementation: ${item.why || item.summary || item.description || "review the cited source before making the decision"}`;
+    return {
     id: item.id,
     title: item.title,
     takeaway: item.why || item.summary || item.description || "Relevant engineering context for this blueprint.",
+    instruction,
     intelUrl: item.intel_page || item.source_url || item.url || "https://www.vibeleaderboard.ai/intel",
     sourceUrl: item.source_url || item.url || null,
     source: item.domain || item.source_author || null,
     publishedAt: item.published_at || item.created_at || null,
     relevance: item.relevance ?? null,
-  }));
+    };
+  });
+  return [...new Map(mapped.map((item) => [item.instruction, item])).values()].slice(0, 4);
 }
 
 export function buildCatalogPacket(apps: CatalogApp[]): CatalogEvidence[] {
@@ -456,6 +480,8 @@ export function ResearchDesk() {
   const executionEvidenceRef = useRef(executionEvidence);
   const deferredSuggestionsRef = useRef(deferredSuggestions);
   const revealTimerRef = useRef<number | null>(null);
+  const dialogRef = useRef<HTMLElement | null>(null);
+  const dialogCloseRef = useRef<HTMLButtonElement | null>(null);
   useEffect(() => void (profileRef.current = { brief, projectKind, priority, stage }), [brief, priority, projectKind, stage]);
   useEffect(() => void (stackPicksRef.current = stackPicks), [stackPicks]);
   useEffect(() => void (intelEvidenceRef.current = intelEvidence), [intelEvidence]);
@@ -466,9 +492,21 @@ export function ResearchDesk() {
   useEffect(() => () => { if (revealTimerRef.current) window.clearInterval(revealTimerRef.current); }, []);
   useEffect(() => {
     if (!selectedPick) return;
-    const close = (event: KeyboardEvent) => { if (event.key === "Escape") setSelectedPick(null); };
+    const previousFocus = document.activeElement instanceof HTMLElement ? document.activeElement : null;
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    window.requestAnimationFrame(() => dialogCloseRef.current?.focus());
+    const close = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSelectedPick(null);
+      if (event.key !== "Tab" || !dialogRef.current) return;
+      const focusable = [...dialogRef.current.querySelectorAll<HTMLElement>('a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])')];
+      if (!focusable.length) return;
+      const first = focusable[0]; const last = focusable[focusable.length - 1];
+      if (event.shiftKey && document.activeElement === first) { event.preventDefault(); last.focus(); }
+      else if (!event.shiftKey && document.activeElement === last) { event.preventDefault(); first.focus(); }
+    };
     window.addEventListener("keydown", close);
-    return () => window.removeEventListener("keydown", close);
+    return () => { window.removeEventListener("keydown", close); document.body.style.overflow = previousOverflow; previousFocus?.focus(); };
   }, [selectedPick]);
 
   const buildBlueprint = useCallback(async (nextBrief: string) => {
@@ -485,11 +523,20 @@ export function ResearchDesk() {
     const draftPicks = specificStackFor(project, profile, choices);
     const deferred = deferredSuggestionsFor(project, profile, draftPicks);
     const stackTerms = draftPicks.filter((pick) => pick.id !== "vibe-intel").slice(0, 12).map((pick) => pick.name).join(" ");
+    const workspaceQuery = profile.projectKind === "mobile"
+      ? "Expo Skills Expo MCP agent-device Callstack React Native skills React Doctor NativeWind skill mobile UI animation testing"
+      : ["web", "ai-product", "browser-extension", "desktop"].includes(profile.projectKind)
+        ? "React skills React Doctor Impeccable design anti-slop accessibility browser verification Vercel React best practices"
+        : `${stackTerms} coding agent skill MCP CLI testing verification`;
     const toolQueries = [
       `${project} similar product software stack tools frontend backend database auth storage analytics payments`,
-      `${project} ${stackTerms} coding agent tools frontend design anti-slop UI polish accessibility hardening testing verification professional production`,
+      workspaceQuery,
     ];
-    const intelQueries = ["Matt Pocock AI coding agents skills context engineering planning verification harness design evaluator best practices"];
+    const intelQueries = [
+      "coding agent harness context engineering project instructions acceptance criteria independent evaluator verification quality gates",
+      "harness design long-running application development independent evaluator context reset coding agents",
+      `${project} ${stackTerms} implementation risks agent workflow testing design quality`,
+    ];
     const [toolSettled, intelSettled] = await Promise.all([
       Promise.allSettled(toolQueries.map((query) => searchApps(query, 8))),
       Promise.allSettled(intelQueries.map((query) => searchIntel(query, 8))),
@@ -518,7 +565,7 @@ export function ResearchDesk() {
     setExecutionEvidence(execution); executionEvidenceRef.current = execution;
     setDeferredSuggestions(deferred); deferredSuggestionsRef.current = deferred;
     const picks = draftPicks.map((pick) => pick.id === "vibe-intel" ? { ...pick, why: research.length || related.length || execution.length
-      ? `Gathered ${research.length} cited Intel source${research.length === 1 ? "" : "s"}, ${related.length} related product${related.length === 1 ? "" : "s"}, and ${execution.length} execution-tool candidate${execution.length === 1 ? "" : "s"}. They are returned to the calling agent as context to evaluate, not instructions to copy.`
+      ? `Produced ${research.length} source-backed project instruction${research.length === 1 ? "" : "s"}, checked ${related.length} related product${related.length === 1 ? "" : "s"}, and found ${execution.length} maintained workspace candidate${execution.length === 1 ? "" : "s"}. Similar apps are treated as clues; only relevant engineering guidance becomes an instruction.`
       : researchNote } : pick);
     setStackPicks(picks); stackPicksRef.current = picks;
     setActivity(`Adding ${picks[0]?.name ?? "the first tool"}. ${picks[0]?.why ?? "Starting the stack."}`);
@@ -547,8 +594,8 @@ export function ResearchDesk() {
       decisionMethod: {
         productStack: "Infer project shape, stage, priority, constraints, and required capabilities; omit services contradicted by the brief.",
         companionTools: "Attach MCPs and diagnostics only when their parent technology is selected, such as Supabase MCP for Supabase or React Doctor for React.",
-        skills: "Choose a small capability-based baseline: frontend direction and anti-slop refinement for UI work, implementation skills for selected platforms, and end-to-end verification for every build.",
-        intel: "Consult current agent-practice Intel and execution-tool candidates, then let the calling agent refine the deterministic first draft rather than treating editorial advice as an automatic install rule.",
+        skills: "Prefer first-party and production-practitioner skills tied to the selected stack. For Expo, install exact official Expo skills plus React Native testing and device tooling; for React web, pair deterministic diagnostics with design and performance review skills.",
+        intel: "Filter current Intel to this project's engineering risks and translate each retained source into an imperative execution instruction. Do not return a generic reading list.",
       },
       research: {
         status: researchStatus,
@@ -557,16 +604,17 @@ export function ResearchDesk() {
         completed: attempts - failures,
         consulted: research.length,
         intel: research,
+        executionPlaybook: research.map(({ instruction, intelUrl, title }) => ({ instruction, source: title, intelUrl })),
         relatedCatalog: related,
         executionCandidates: execution,
-        instruction: "Reason over these results; do not copy them blindly. Related apps show nearby patterns, not proof that their choices fit this project. Apply relevant agent-practice Intel to the workflow, evaluate execution-tool candidates against the selected stack, verify consequential claims at the original source, and call refine_project_blueprint to add only skills and tools that materially improve execution.",
+        instruction: "Execute the project-specific playbook, then evaluate related apps and workspace candidates rather than copying them. Verify consequential claims at original sources and call refine_project_blueprint only when a replacement materially improves this project.",
       },
     };
   }, []);
 
   const blueprintText = useMemo(() => {
     const lines = stackPicks.map((pick) => `- ${pick.kind}: ${pick.name}. ${pick.role}`);
-    const research = intelEvidence.length ? `\n\n## Intel consulted\n${intelEvidence.map((item) => `- ${item.title}: ${item.takeaway} (${item.intelUrl})`).join("\n")}` : "";
+    const research = intelEvidence.length ? `\n\n## Source-backed execution instructions\n${intelEvidence.map((item) => `- ${item.instruction}\n  Evidence: ${item.title} (${item.intelUrl})`).join("\n")}` : "";
     const related = catalogEvidence.length ? `\n\n## Related VibeLeaderboard context (not endorsements)\n${catalogEvidence.map((item) => `- ${item.title}: ${item.why} (${item.url})`).join("\n")}` : "";
     const execution = executionEvidence.length ? `\n\n## Execution-tool candidates (evaluate before adding)\n${executionEvidence.map((item) => `- ${item.title}: ${item.why} (${item.url})`).join("\n")}` : "";
     const deferred = deferredSuggestions.length ? `\n\n## Deferred until production\n${deferredSuggestions.map((item) => `- ${item.name} (${item.when}): ${item.why}`).join("\n")}` : "";
@@ -642,8 +690,8 @@ export function ResearchDesk() {
 
   const submit = (event: FormEvent) => { event.preventDefault(); void buildBlueprint(brief).catch((cause) => { setBuilding(false); setError(cause instanceof Error ? cause.message : "Could not build blueprint."); }); };
   const visiblePicks = stackPicks.slice(0, unlockedCount);
-  const branches: Array<{ id: StackPick["branch"]; label: string }> = [{ id: "product", label: "PRODUCT STACK" }, { id: "services", label: "SERVICES + DELIVERY" }, { id: "build", label: "AI BUILD SETUP" }];
-  const buildGroups = [{ id: "core", label: "HARNESS + MODEL" }, { id: "mcp", label: "MCPS" }, { id: "skills", label: "SKILLS" }, { id: "cli", label: "CLIS + DIAGNOSTICS" }, { id: "intel", label: "INTEL" }];
+  const branches: Array<{ id: StackPick["branch"]; label: string; sheet: string }> = [{ id: "build", label: "EQUIPPED AI WORKSPACE", sheet: "SHEET A" }, { id: "product", label: "APPLICATION", sheet: "SHEET B" }, { id: "services", label: "SHIP + OPERATE", sheet: "SHEET C" }];
+  const buildGroups = [{ id: "core", label: "HARNESS + MODEL" }, { id: "mcp", label: "CONNECTED MCPS" }, { id: "cli", label: "DIAGNOSTICS + QA" }, { id: "intel", label: "EXECUTION PLAYBOOK" }, { id: "skills", label: "PROJECT SKILLS" }];
   const buildGroupFor = (pick: StackPick) => pick.id === "vibe-intel" ? "intel" : pick.kind.toLowerCase().includes("mcp") || pick.name.endsWith("MCP") ? "mcp" : pick.kind.toLowerCase().includes("skill") ? "skills" : /cli|diagnostic/i.test(pick.kind) ? "cli" : "core";
   const pickButton = (pick: StackPick) => <button type="button" className="tool-pick" key={pick.id} onClick={() => setSelectedPick(pick)} aria-label={`Review why ${pick.name} was selected`}><span className="tool-logo"><i>{pick.name.slice(0, 1)}</i><img src={pick.icon} alt="" onError={(event) => { event.currentTarget.style.display = "none"; }} /></span><span className="tool-copy"><b>{pick.name}</b><small>{pick.kind}</small></span><em>+</em></button>;
   const complete = started && !building && stackPicks.length > 0;
@@ -651,16 +699,16 @@ export function ResearchDesk() {
   return <main className="stack-picker-page">
     <header className="topbar"><a className="brand" href="#top">STACK BLUEPRINT</a><span>WEBMCP CONSULTANT</span><div className={`connection connection-${webMcp}`}><i />{webMcp === "ready" ? "AGENT CONNECTED" : webMcp === "checking" ? "CONNECTING" : "AUTO MODE"}</div></header>
 
-    <section className="picker-intro" id="top"><span>TOOL / FIG. A</span><h1>Your idea. <b>Your stack.</b></h1><p>Describe the project. We research and connect the exact tools to build it.</p></section>
+    <section className="picker-intro" id="top"><span>ARCHITECT'S DESK / SHEET 01</span><h1>Equip the agent.<br /><b>Then build.</b></h1><p>Describe the software. We draft its application stack and the exact AI workspace needed to execute it well.</p></section>
 
     <form className="idea-form" onSubmit={submit}><label htmlFor="project-brief">WHAT ARE YOU BUILDING?</label><div><textarea id="project-brief" value={brief} onChange={(event) => setBrief(event.target.value)} maxLength={600} /><button type="submit" disabled={building}>{building ? "BUILDING…" : "BUILD MY STACK"}</button></div>{started && <small>{PROJECT_KINDS.find((item) => item.id === projectKind)?.label} · {STAGES.find((item) => item.id === stage)?.label} · {PRIORITIES.find((item) => item.id === priority)?.label}</small>}</form>
     {error && <div className="picker-error" role="alert">{error}</div>}
 
-    <section className={`stack-result ${started ? "started" : ""}`} aria-labelledby="stack-title"><header><div><span>GENERATED PLAN</span><h2 id="stack-title">Your stack</h2></div>{started && <b>{unlockedCount} / {stackPicks.length || "…"}</b>}</header>
+    <section className={`stack-result ${started ? "started" : ""}`} aria-labelledby="stack-title"><header><div><span>ISSUED FOR BUILD</span><h2 id="stack-title">Project drawing set</h2></div>{started && <b>REV {String(unlockedCount).padStart(2, "0")}</b>}</header>
       {!started ? <div className="stack-empty"><i>+</i><p>Your connected stack will appear here.</p></div> : <>
         <div className={`build-narrator ${complete ? "complete" : ""}`} aria-live="polite"><span>{complete ? "READY" : "ARCHITECT"}</span><p>{activity}</p></div>
         <div className="stack-tree"><div className="project-node"><span>PROJECT</span><b>{brief}</b></div><div className="tree-trunk" aria-hidden="true" />
-          <div className="stack-branches">{branches.map((branch) => <section className={`stack-branch branch-${branch.id}`} key={branch.id}><h3>{branch.label}</h3>{branch.id === "build" ? <div className="pick-groups">{buildGroups.map((group) => { const groupPicks = visiblePicks.filter((pick) => pick.branch === "build" && buildGroupFor(pick) === group.id); return groupPicks.length ? <div className="pick-subgroup" key={group.id}><span>{group.label}</span><div className="pick-list">{groupPicks.map(pickButton)}</div></div> : null; })}</div> : <div className="pick-list">{visiblePicks.filter((pick) => pick.branch === branch.id).map(pickButton)}</div>}</section>)}</div>
+          <div className="stack-branches">{branches.map((branch) => <section className={`stack-branch branch-${branch.id}`} key={branch.id}><h3><span>{branch.sheet}</span>{branch.label}</h3>{branch.id === "build" ? <div className="pick-groups">{buildGroups.map((group) => { const groupPicks = visiblePicks.filter((pick) => pick.branch === "build" && buildGroupFor(pick) === group.id); return groupPicks.length ? <div className="pick-subgroup" key={group.id}><span>{group.label}</span><div className="pick-list">{groupPicks.map(pickButton)}</div></div> : null; })}</div> : <div className="pick-list">{visiblePicks.filter((pick) => pick.branch === branch.id).map(pickButton)}</div>}</section>)}</div>
         </div>
         {complete && <div className="stack-actions"><span>Click any logo to see why it was chosen.</span><button type="button" onClick={() => void copyText("plan", blueprintText)}>{copied === "plan" ? "COPIED ✓" : "COPY BUILD BRIEF"}</button></div>}
       </>}
@@ -668,6 +716,6 @@ export function ResearchDesk() {
 
     <footer className="picker-footer"><span>PUBLIC TOOL SURVEY + INTEL</span><a href={PUBLIC_MCP_URL}>VIBELEADERBOARD MCP ↗</a></footer>
 
-    {selectedPick && typeof document !== "undefined" && createPortal(<div className="pick-dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedPick(null); }}><article className={`pick-dialog ${selectedPick.id === "vibe-intel" ? "intel-dialog" : ""}`} role="dialog" aria-modal="true" aria-labelledby="pick-dialog-title"><button className="dialog-close" type="button" onClick={() => setSelectedPick(null)} aria-label="Close explanation">×</button><div className="dialog-title"><span className="dialog-logo"><i>{selectedPick.name.slice(0, 1)}</i><img src={selectedPick.icon} alt="" onError={(event) => { event.currentTarget.style.display = "none"; }} /></span><div><span>{selectedPick.kind}</span><h2 id="pick-dialog-title">{selectedPick.name}</h2></div></div><p className="dialog-role">{selectedPick.role}</p><section><span>WHY THIS PICK</span><p>{selectedPick.why}</p></section>{selectedPick.id === "vibe-intel" && <>{executionEvidence.length > 0 && <section className="intel-sources"><span>EXECUTION TOOLS FOUND</span><ul>{executionEvidence.map((item) => <li key={item.id}><a href={item.url} target="_blank" rel="noreferrer"><b>{item.title}</b><small>{item.category ?? "TOOL"}</small></a><p>{item.why}</p></li>)}</ul><p className="evidence-caution">These are candidates for making the coding agent execute better. Add only the tools or skills that improve this project.</p></section>}{catalogEvidence.length > 0 && <section className="intel-sources"><span>RELATED ON VIBELEADERBOARD</span><ul>{catalogEvidence.map((item) => <li key={item.id}><a href={item.url} target="_blank" rel="noreferrer"><b>{item.title}</b><small>{item.category ?? "CATALOG"}</small></a><p>{item.why}</p></li>)}</ul><p className="evidence-caution">Similarity is context, not endorsement. The calling agent is instructed to decide whether each pattern actually fits this project.</p></section>}{intelEvidence.length > 0 && <section className="intel-sources"><span>INTEL GATHERED</span><ul>{intelEvidence.map((item) => <li key={item.id}><a href={item.intelUrl} target="_blank" rel="noreferrer"><b>{item.title}</b><small>{item.source ?? "Vibe Intel"}</small></a><p>{item.takeaway}</p></li>)}</ul></section>}</>}<a href={selectedPick.sourceUrl} target="_blank" rel="noreferrer">OPEN OFFICIAL SOURCE ↗</a></article></div>, document.body)}
+    {selectedPick && typeof document !== "undefined" && createPortal(<div className="pick-dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedPick(null); }}><article ref={dialogRef} className={`pick-dialog ${selectedPick.id === "vibe-intel" ? "intel-dialog" : ""}`} role="dialog" aria-modal="true" aria-labelledby="pick-dialog-title" aria-describedby="pick-dialog-role"><button ref={dialogCloseRef} className="dialog-close" type="button" onClick={() => setSelectedPick(null)} aria-label="Close explanation">×</button><div className="dialog-title"><span className="dialog-logo"><i>{selectedPick.name.slice(0, 1)}</i><img src={selectedPick.icon} alt="" onError={(event) => { event.currentTarget.style.display = "none"; }} /></span><div><span>{selectedPick.kind}</span><h2 id="pick-dialog-title">{selectedPick.name}</h2></div></div><p className="dialog-role" id="pick-dialog-role">{selectedPick.role}</p><section><span>WHY THIS PICK</span><p>{selectedPick.why}</p></section>{selectedPick.id === "vibe-intel" && <>{executionEvidence.length > 0 && <section className="intel-sources"><span>WORKSPACE CANDIDATES CHECKED</span><ul>{executionEvidence.map((item) => <li key={item.id}><a href={item.url} target="_blank" rel="noreferrer"><b>{item.title}</b><small>{item.category ?? "TOOL"}</small></a><p>{item.why}</p></li>)}</ul><p className="evidence-caution">Candidates only enter the blueprint when they match a selected technology or close a specific execution gap.</p></section>}{catalogEvidence.length > 0 && <section className="intel-sources"><span>RELATED PRODUCTS CHECKED</span><ul>{catalogEvidence.map((item) => <li key={item.id}><a href={item.url} target="_blank" rel="noreferrer"><b>{item.title}</b><small>{item.category ?? "CATALOG"}</small></a><p>{item.why}</p></li>)}</ul><p className="evidence-caution">A common stack may be correct, but similarity is never treated as proof.</p></section>}{intelEvidence.length > 0 && <section className="intel-sources"><span>PROJECT INSTRUCTIONS EXTRACTED</span><ul>{intelEvidence.map((item) => <li key={item.id}><a href={item.intelUrl} target="_blank" rel="noreferrer"><b>{item.instruction}</b><small>{item.source ?? "Vibe Intel"}</small></a><p>Evidence: {item.title}. {item.takeaway}</p></li>)}</ul></section>}</>}<a href={selectedPick.sourceUrl} target="_blank" rel="noreferrer">OPEN OFFICIAL SOURCE ↗</a></article></div>, document.body)}
   </main>;
 }

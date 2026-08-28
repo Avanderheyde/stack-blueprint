@@ -4,6 +4,8 @@
 
 An open-source WebMCP consultant for the first decision of any software project: **what should we build it with, what AI tools should help us build it, and why?**
 
+**Live:** [stack-blueprint.vercel.app](https://stack-blueprint.vercel.app)
+
 A builder describes an idea in ordinary language. The WebMCP architect infers the project profile, searches VibeLeaderboard’s maintained public catalog for related products and execution tools, gathers a cited Intel packet, and drafts a specific build system. A familiar product stack may still be the right answer; the extra value is matching every major product choice to the AI tools that make it easier to execute—for example Supabase MCP for Supabase, React Doctor for React, and Sentry MCP for Sentry—plus harness, model, design, anti-slop polish, verification, and release gates.
 
 ## What it selects
@@ -16,7 +18,9 @@ The internal consultation covers:
 
 The overview shows only the answer: exact products, frameworks, services, coding harness, builder model, repository skills, CI, research, and verification tools. It omits unnecessary services automatically. Rationale stays behind each logo so the initial result remains easy to scan; it does not present an alternative-choice grid unless a user explicitly asks for one.
 
-The AI branch groups harness/model, MCPs, skills, diagnostics/CLIs, and Intel separately. Delivery infrastructure such as GitHub Actions lives with services and delivery, not under AI. Prototype blueprints keep production observability and analytics out of the visible graph while returning them to the calling agent as intentional deferrals.
+The equipped AI workspace is the primary sheet. It groups harness/model, connected MCPs, exact project skills, diagnostics/QA, and a source-backed execution playbook. Delivery infrastructure such as GitHub Actions lives with services and delivery, not under AI. Prototype blueprints keep production observability and analytics out of the visible graph while returning them to the calling agent as intentional deferrals.
+
+Recommendations are conditional and opinionated. An Expo + NativeWind project receives the official Expo MCP, exact Expo skills (`expo-project-structure`, `expo-design-system`, `expo-tailwind-setup`, and `expo-router`), Callstack React Native skills, React Doctor, Expo Doctor, and agent-device. A React web project receives a different workspace: React diagnostics and best practices, Impeccable design/hardening passes, connected service MCPs, and browser-to-data verification.
 
 ## WebMCP collaboration
 
@@ -30,6 +34,23 @@ The page registers six visible tools:
 - `render_project_blueprint` — produce the final software and AI build plan
 
 The same automatic build and click-to-explain flow remains usable manually in browsers without WebMCP.
+
+The page uses the WebMCP registration API directly. The implementation builds an array of tools and registers each one with the active page lifecycle:
+
+```ts
+document.modelContext.registerTool({
+  name: "build_project_blueprint",
+  description: "Draft the application stack and fully equipped AI workspace.",
+  inputSchema: {
+    type: "object",
+    properties: { project: { type: "string" } },
+    required: ["project"],
+  },
+  execute: async ({ project }) => buildBlueprint(project),
+});
+```
+
+See the complete six-tool implementation in [`components/research-desk.tsx`](./components/research-desk.tsx).
 
 ## Why the WebMCP matters
 
@@ -51,8 +72,13 @@ npm run typecheck
 npm run build
 ```
 
+For WebMCP verification, open the live URL in ChatGPT's in-app browser or Chrome 149+ with `chrome://flags/#enable-webmcp-testing` enabled. Ask the agent to call `build_project_blueprint` with an ordinary project description, inspect the returned workspace, and then click a rendered tool node to compare the visible state with the tool result.
+
 The visual and interaction contract is documented in [`DESIGN.md`](./DESIGN.md).
 
 ## License
 
 MIT. See [`LICENSE`](./LICENSE).
+
+Submission copy and the under-three-minute demo plan are in [`SUBMISSION.md`](./SUBMISSION.md).
+The deterministic and browser-agent evaluation matrix is in [`EVALS.md`](./EVALS.md).
