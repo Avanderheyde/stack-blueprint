@@ -142,5 +142,11 @@ describe("automatic blueprint consultation", () => {
     ]);
     expect(catalog.map((item) => item.title)).toEqual(["Related", "Typed Skill"]);
     expect(catalog[1]?.category).toBe("SKILL");
+
+    const focusedCatalog = buildCatalogPacket([
+      { id: "match", title: "React Native Skills", structured_match: true, tool_type: "skill", maintained: true, url: "https://example.com/match", why: "Mobile performance guidance." },
+      { id: "noise-typed", title: "Research Helper", structured_match: true, tool_type: "skill", maintained: true, url: "https://example.com/noise", why: "Research social posts." },
+    ], [], "React Native mobile performance");
+    expect(focusedCatalog.map((item) => item.title)).toEqual(["React Native Skills"]);
   });
 });

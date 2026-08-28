@@ -450,13 +450,21 @@ export function buildIntelPacket(items: IntelItem[], focusText = ""): IntelEvide
   return [...new Map(mapped.map((item) => [item.instruction, item])).values()].slice(0, 4);
 }
 
-export function buildCatalogPacket(apps: CatalogApp[], preferredNames: string[] = []): CatalogEvidence[] {
+export function buildCatalogPacket(apps: CatalogApp[], preferredNames: string[] = [], focusText = ""): CatalogEvidence[] {
   const preferred = preferredNames.map((name) => name.toLowerCase());
+  const genericTerms = new Set(["agent", "application", "build", "building", "development", "implementation", "project", "quality", "software", "testing", "tool", "using"]);
+  const focusTerms = [...new Set(focusText.toLowerCase().match(/[a-z0-9-]{4,}/g) ?? [])].filter((term) => !genericTerms.has(term));
+  const affinity = (app: CatalogApp) => preferred.some((name) => app.title.toLowerCase().includes(name) || name.includes(app.title.toLowerCase()));
+  const focusMatch = (app: CatalogApp) => {
+    if (!focusTerms.length) return true;
+    const evidence = `${app.title} ${app.why ?? ""} ${app.how_to_use ?? ""}`.toLowerCase();
+    return focusTerms.some((term) => evidence.includes(term));
+  };
   const candidates = [...new Map(apps.filter((app) => app.id).map((app) => [app.id, app])).values()]
     .filter((app) => app.maintained !== false && (app.structured_match || (app.relevance ?? 0) >= 0.48) && (app.url || app.github_url))
+    .filter((app) => !app.structured_match || affinity(app) || focusMatch(app))
     .sort((a, b) => {
-      const affinity = (app: CatalogApp) => preferred.some((name) => app.title.toLowerCase().includes(name) || name.includes(app.title.toLowerCase())) ? 1 : 0;
-      return affinity(b) - affinity(a) || (b.relevance ?? 0) - (a.relevance ?? 0);
+      return Number(affinity(b)) - Number(affinity(a)) || (b.relevance ?? 0) - (a.relevance ?? 0);
     });
   const roleCounts = new Map<string, number>();
   const selected = candidates.filter((app) => {
@@ -586,7 +594,7 @@ export function ResearchDesk() {
     const uniqueTools = [...new Map(surveyedTools.map((item) => [item.id, item])).values()];
     const uniqueIntel = [...new Map(consultedIntel.map((item) => [item.id, item])).values()];
     const research = buildIntelPacket(uniqueIntel, `${project} ${stackTerms} ${riskQuery}`);
-    const execution = buildCatalogPacket(executionApps, draftPicks.filter((pick) => pick.branch === "build").map((pick) => pick.name));
+    const execution = buildCatalogPacket(executionApps, draftPicks.filter((pick) => pick.branch === "build").map((pick) => pick.name), `${project} ${stackTerms} ${riskQuery}`);
     const attempts = toolSettled.length + intelSettled.length;
     const failures = [...toolSettled, ...intelSettled].filter((result) => result.status === "rejected").length;
     const researchStatus = failures === attempts ? "temporarily-unavailable" : failures > 0 ? "partial" : research.length || execution.length ? "consulted" : "no-relevant-results";
