@@ -77,7 +77,7 @@ No comparison grids, alternative cards, dense explanatory copy in the overview, 
 - 2026-08-27: Distilled the overview from 27 textual rows and a persistent evidence sidebar into six visual blueprint modules with a single on-demand inspector.
 - 2026-08-27: Rejected the remaining module and alternative-choice system. The public answer is now a slowly drawn three-branch graph of exact tool logos; rationale appears only when a logo is opened.
 - 2026-08-28: Added quiet category labels to each node and made the Vibe Intel node expose the actual cited research packet returned to the calling agent.
-- 2026-08-28: Added related VibeLeaderboard entries as decision context and an agent refinement step. Similarity is explicitly treated as a clue to evaluate, never a stack to copy.
+- 2026-08-28: Removed automatic similar-product matching so VibeLeaderboard consultation stays focused on the harder differentiator: selecting a stack-specific AI workspace and execution playbook.
 - 2026-08-28: Clarified the product's differentiation: conventional stacks are acceptable; the WebMCP adds a researched AI execution layer with frontend direction, anti-slop refinement, hardening, verification, and current tool candidates.
 - 2026-08-28: Made the AI build layer conditional on the product stack. Major selections now pull their companion MCPs and diagnostics so the calling agent is equipped to implement and operate the chosen technologies.
 - 2026-08-28: Grouped the AI layer into harness/model, MCPs, skills, diagnostics/CLIs, and Intel; moved CI into services and delivery. Prototype-only production tools remain out of the graph and are returned as intentional deferrals.

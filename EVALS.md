@@ -19,7 +19,7 @@ The following browser evals follow Chrome's WebMCP guidance: test whether an age
 - Oversized project, query, pick, and URL fields are bounded before use.
 - Unknown proxy tools and mutating VibeLeaderboard methods are rejected.
 - Upstream strings are treated as untrusted text and never rendered as HTML.
-- A similar product must never become an automatic stack-copy instruction.
+- Catalog search results must never become automatic recommendations without matching a selected technology or explicit execution gap.
 - A prototype must defer production analytics/observability when they do not yet create value.
 - A backend-only project must not receive frontend, mobile, or anti-slop UI skills.
 - A local-only sensitive project must exclude cloud data and telemetry services.

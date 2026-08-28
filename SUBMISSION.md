@@ -4,6 +4,46 @@
 
 Describe your software. Stack Blueprint uses WebMCP to draft its stack, equip your coding agent with the right skills, MCPs and checks, then explain every choice as the blueprint draws itself.
 
+## Devpost project story
+
+### Inspiration
+
+AI coding agents are good at naming a familiar framework, database, and host. That answer is rarely enough to make them excellent at building with those choices. A React Native project may need Expo-specific skills, device automation, React diagnostics, and a native-quality design pass. A Supabase project benefits from its MCP and explicit database and RLS guidance. Builders should not have to know this entire ecosystem before they begin.
+
+We built Stack Blueprint to answer the harder question: not just “what stack should I use?” but “how do I fully equip my agent to execute this stack well?”
+
+### What it does
+
+Describe any software idea in ordinary language. Stack Blueprint infers the project shape, stage, and priorities; selects a focused product stack; consults VibeLeaderboard's maintained public index for matching AI execution tools; and converts relevant engineering Intel into project-specific instructions.
+
+The result draws itself as an architectural blueprint. The equipped AI workspace appears first, grouped into harness and model, connected MCPs, diagnostics and QA, project skills, and an execution playbook. The application and delivery layers follow. Click any logo to see its role, why it was chosen, and its official source. The overview stays deliberately simple, while the browser agent can inspect, refine, and render the same structured plan through WebMCP.
+
+### Why WebMCP
+
+This is shared work, not a static recommendation. The user needs a visible plan they can understand and question; the agent needs structured tools it can call, inspect, and revise. WebMCP lets one project description trigger the real product workflow, update visible page state, and return the same evidence-backed blueprint to the agent.
+
+The page registers six tools: build, inspect, refine, survey, consult, and render. Together, a person and agent can create and improve one inspectable execution system instead of passing disconnected lists between a chat and a website.
+
+### How we built it
+
+Stack Blueprint is an open-source Next.js and TypeScript application hosted on Vercel. Its client registers tools with `document.modelContext.registerTool(...)`; tool calls update the same React state as the manual interface. A bounded same-origin API proxy calls only VibeLeaderboard's public, read-only catalog and Intel tools. No private source code, credentials, transcripts, or article bodies are shipped.
+
+Recommendations are conditional. Selecting Expo activates Expo MCP, exact Expo project/design/router skills, React and Expo diagnostics, and device automation. Selecting Supabase activates Supabase MCP and database guidance. Prototype briefs intentionally defer production-only services. Intel results are filtered to the project's risks and rewritten as imperative build instructions rather than displayed as a generic reading feed.
+
+### Challenges
+
+The hardest problem was resisting a template-driven stack picker. Similar apps do not prove that their choices were correct, and a dense alternatives grid made the result harder to use. We removed automatic product matching and focused the consultation on the more defensible value: a maintained, stack-specific AI workspace.
+
+We also had to make external evidence useful without making it authoritative. Catalog and Intel results are bounded, sanitized, cited, and treated as untrusted inputs. The initial blueprint remains a first draft that the calling agent can refine only with a complete replacement plan and explicit reasoning.
+
+### What we learned
+
+The framework decision is often the easy part. Execution quality improves when a stack selection automatically brings along its official MCPs, exact implementation skills, deterministic diagnostics, and proof requirements. WebMCP is especially useful when the browser experience and the agent's structured state should be the same object—not two approximations of each other.
+
+### What's next
+
+Next we want to expand the maintained tool mappings, add repeatable browser evals for more project types, and let teams export the final blueprint directly into repository instructions and agent workspace configuration.
+
 ## Why this is a strong fit for WebMCP
 
 Choosing a software stack is not only a question-and-answer task. The useful result is shared, inspectable state: a builder and browser agent should be able to create the same blueprint, watch it take shape, inspect a selected tool, refine the plan, and carry the final build brief into implementation. WebMCP lets the agent operate the visible product rather than returning a disconnected chat list.
@@ -14,7 +54,7 @@ The browser registers six tools for building, inspecting, refining, surveying, c
 
 Plain agents commonly return a familiar stack and stop. Stack Blueprint adds the difficult execution layer: it matches selected products to official MCPs, exact platform skills, deterministic diagnostics, device/browser verification, quality gates, and source-backed project instructions. For example, choosing Expo and NativeWind activates Expo MCP, exact Expo project/design/Tailwind/router skills, Callstack React Native skills, React Doctor, Expo Doctor, and agent-device. Choosing Supabase activates scoped Supabase MCP plus database and RLS guidance.
 
-The system still uses judgment. Related products are evidence, not templates to copy. Intel is filtered to the project's engineering risks and converted into imperative instructions rather than shown as a random article feed. Production-only services are deferred when a prototype does not need them.
+The system still uses judgment. Catalog candidates are evaluated against the selected technologies and project constraints rather than treated as automatic recommendations. Intel is filtered to the project's engineering risks and converted into imperative instructions rather than shown as a random article feed. Production-only services are deferred when a prototype does not need them.
 
 This collaboration was difficult before WebMCP because the agent's recommendation, the user's visible plan, current external evidence, and later refinements lived in separate surfaces. Here they are one shared object on the page.
 
@@ -50,7 +90,7 @@ Click Expo MCP, expo-tailwind-setup, and agent-device. Show the concise reason e
 
 ### 1:25-1:50 - Current evidence becomes instructions
 
-Click Vibe Intel. Show that the page checked related VibeLeaderboard products and current engineering Intel but did not copy them. Highlight the extracted project instructions: define acceptance criteria first, use an independent evaluator, keep repository context explicit, and require device-level evidence.
+Click Vibe Intel. Show the maintained workspace candidates it evaluated and the project instructions extracted from current engineering Intel: define acceptance criteria first, use an independent evaluator, keep repository context explicit, and require device-level evidence.
 
 ### 1:50-2:18 - The blueprint changes the build
 
