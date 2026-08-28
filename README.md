@@ -4,7 +4,7 @@
 
 An open-source WebMCP consultant for the first decision of any software project: **what should we build it with, what AI tools should help us build it, and why?**
 
-A builder describes an idea in ordinary language. The WebMCP architect infers the project profile, searches VibeLeaderboard’s maintained public tool catalog, consults current Intel, and selects a specific build system automatically. The recommended product stack, connected services, and AI build setup draw themselves into one connected logo graph. Click any logo to see its role, rationale, and official source.
+A builder describes an idea in ordinary language. The WebMCP architect infers the project profile, searches VibeLeaderboard’s maintained public tool catalog for related products and tools, gathers a cited Intel packet, and drafts a specific build system. The calling agent is instructed to reason over that context—not copy it—and can apply an evidence-backed refinement before presenting the answer. The product stack, connected services, and AI build setup draw themselves into one connected logo graph. Click any logo to see its role, rationale, and sources.
 
 ## What it selects
 
@@ -18,10 +18,11 @@ The overview shows only the answer: exact products, frameworks, services, coding
 
 ## WebMCP collaboration
 
-The page registers five visible tools:
+The page registers six visible tools:
 
 - `build_project_blueprint` — infer the profile, consult both evidence sources, and draft every decision from one project description
 - `inspect_project_blueprint` — inspect the complete exact stack or one selected pick
+- `refine_project_blueprint` — replace the first draft after the agent reasons over constraints, Intel, and related catalog evidence
 - `survey_stack_tools` — find maintained candidates in the public tool catalog
 - `consult_stack_intel` — retrieve current, citable engineering evidence
 - `render_project_blueprint` — produce the final software and AI build plan
@@ -30,7 +31,7 @@ The same automatic build and click-to-explain flow remains usable manually in br
 
 ## Why the WebMCP matters
 
-A plain agent answers from model recall and whatever context happens to be in the conversation. Stack Blueprint gives it a structured project profile, a comprehensive decision checklist, current tool survey results, and citable Intel. One orchestration tool performs the consultation and matching automatically; the user reviews the answer instead of operating the research workflow.
+A plain agent answers from model recall and whatever context happens to be in the conversation. Stack Blueprint gives it a structured project profile, a comprehensive decision checklist, related VibeLeaderboard entries, and citable Intel. The initial stack remains a hypothesis: the agent is explicitly told that a similar app is not proof, must assess whether its patterns fit, and should apply a researched refinement when the evidence or project constraints disagree.
 
 ## Public evidence boundary
 

@@ -71,7 +71,9 @@ a { color: inherit; }
 .tool-logo, .dialog-logo { position: relative; width: 40px; height: 40px; display: grid; place-items: center; overflow: hidden; border: 1px solid var(--line); border-radius: 9px; background: #fbfcff; }
 .tool-logo i, .dialog-logo i { color: var(--muted); font: normal 600 18px/1 var(--font-display), sans-serif; }
 .tool-logo img, .dialog-logo img { position: absolute; inset: 7px; width: calc(100% - 14px); height: calc(100% - 14px); object-fit: contain; }
+.tool-copy { min-width: 0; display: grid; gap: 3px; }
 .tool-pick b { overflow: hidden; font-size: 15px; text-overflow: ellipsis; white-space: nowrap; }
+.tool-pick small { overflow: hidden; color: var(--muted); font: 500 8px/1.1 var(--font-mono), monospace; letter-spacing: .08em; text-overflow: ellipsis; text-transform: uppercase; white-space: nowrap; }
 .tool-pick em { color: var(--blue); font: normal 20px/1 var(--font-display), sans-serif; }
 @keyframes place-node { from { opacity: 0; transform: translateY(-8px) scale(.98); } }
 @keyframes grow-x { from { transform: scaleX(0); } }
@@ -96,6 +98,16 @@ a { color: inherit; }
 .pick-dialog section { padding: 18px 0; border-top: 1px solid var(--line); border-bottom: 1px solid var(--line); }
 .pick-dialog section p { margin: 8px 0 0; font-size: 15px; line-height: 1.55; }
 .pick-dialog > a { display: inline-block; margin-top: 18px; color: var(--blue); font: 600 9px/1 var(--font-mono), monospace; letter-spacing: .1em; text-decoration: none; }
+.intel-dialog { width: min(680px, 100%); }
+.pick-dialog .intel-sources { border-top: 0; }
+.intel-sources ul { display: grid; gap: 16px; margin: 14px 0 0; padding: 0; list-style: none; }
+.intel-sources li { padding-top: 14px; border-top: 1px solid var(--line); }
+.intel-sources li > a { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; color: var(--ink); text-decoration: none; }
+.intel-sources li > a:hover b { color: var(--blue); }
+.intel-sources li b { font-size: 14px; line-height: 1.3; white-space: normal; }
+.intel-sources li small { flex: 0 0 auto; color: var(--muted); font: 500 8px/1 var(--font-mono), monospace; letter-spacing: .08em; text-transform: uppercase; }
+.intel-sources li p { color: var(--muted); font-size: 13px !important; line-height: 1.45 !important; }
+.intel-sources .evidence-caution { margin-top: 16px; padding: 10px 12px; background: var(--blue-soft); color: #33415f; font: 500 10px/1.45 var(--font-mono), monospace; }
 @keyframes fade-in { from { opacity: 0; } }
 @keyframes dialog-in { from { opacity: 0; transform: translateY(10px) scale(.98); } }
 

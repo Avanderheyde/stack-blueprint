@@ -42,7 +42,7 @@ Construction blue is reserved for the primary kickoff action, active drawing lin
 ## Layout
 
 - Composition: masthead, one-question brief, narrator strip, project root, and three connected branches—product stack, connected services, and AI build setup.
-- Tool nodes contain a logo and name only. The overview never exposes explanatory paragraphs or option grids.
+- Tool nodes contain a logo, name, and quiet grey category label. The overview never exposes explanatory paragraphs or option grids.
 - Rationale and provenance live in the on-demand tool inspector.
 - Borders and connecting lines are structural. Shadows appear only behind the focused inspector.
 
@@ -75,3 +75,5 @@ No comparison grids, alternative cards, dense explanatory copy in the overview, 
 - 2026-08-27: Replaced the 27-question lock sequence with one-question intake, automatic catalog and Intel consultation, a staged self-drawing blueprint, expandable reasoning, and one plan-level approval.
 - 2026-08-27: Distilled the overview from 27 textual rows and a persistent evidence sidebar into six visual blueprint modules with a single on-demand inspector.
 - 2026-08-27: Rejected the remaining module and alternative-choice system. The public answer is now a slowly drawn three-branch graph of exact tool logos; rationale appears only when a logo is opened.
+- 2026-08-28: Added quiet category labels to each node and made the Vibe Intel node expose the actual cited research packet returned to the calling agent.
+- 2026-08-28: Added related VibeLeaderboard entries as decision context and an agent refinement step. Similarity is explicitly treated as a clue to evaluate, never a stack to copy.
