@@ -1,20 +1,37 @@
-# Vibe Intel Desk
+# Agent Blueprint
 
-An open-source WebMCP research workspace backed by the public [VibeLeaderboard Intel](https://www.vibeleaderboard.ai/intel) index.
+![Agent Blueprint: Design. Decide. Lock.](./assets/agent-blueprint-devpost-thumbnail.png)
 
-The page gives a browser agent five visible, auditable tools:
+An open-source WebMCP workspace where a builder and browser agent design an agent stack together. The architecture is revealed one layer at a time; every option teaches its best use and tradeoff, and only an explicit human-approved lock advances the drawing.
 
-- `search_vibe_intel` — semantic search over public editorial summaries and citations
-- `show_recent_vibe_intel` — see what changed recently
-- `pin_vibe_evidence` — place a source in the shared evidence ledger
-- `remove_vibe_evidence` — correct the ledger
-- `draft_cited_vibe_brief` — render a synthesis that can cite only pinned evidence
+The seven layers cover:
 
-## Data boundary
+1. Model strategy
+2. Agent runtime
+3. Tools and protocols
+4. Skills and procedures
+5. Context and memory
+6. Evaluations and observability
+7. Execution boundary
 
-This repository contains the complete WebMCP client and a narrow same-origin proxy for four read-only Intel tools. The proxy calls VibeLeaderboard as an external public data service through `https://www.vibeleaderboard.ai/api/mcp`. It uses no API key, authentication cookie, Supabase credential, transcript, or private VibeLeaderboard source code. Returned source material is treated as untrusted plain text and is never rendered as HTML.
+## WebMCP collaboration
 
-The upstream endpoint can be changed server-side with `VIBELEADERBOARD_MCP_URL`; the default is the production public endpoint. The browser talks only to the same-origin `/api/vibe` route.
+The page registers six visible tools:
+
+- `begin_agent_blueprint` — start the shared drawing from a project brief
+- `inspect_blueprint_options` — read the available choices and tradeoffs
+- `search_blueprint_sources` — search public tools or Intel evidence
+- `recommend_blueprint_option` — place an agent recommendation without committing it
+- `lock_blueprint_choice` — lock a decision only after the user approves it
+- `render_agent_blueprint` — produce the final implementation build sheet
+
+The same workflow remains usable manually in browsers without WebMCP.
+
+## Public evidence boundary
+
+Agent Blueprint uses a narrow same-origin proxy for VibeLeaderboard’s public, read-only catalog and Intel tools. It uses no API key, authentication cookie, Supabase credential, transcript, article body, or private VibeLeaderboard source code. Returned content is treated as untrusted plain text and is never rendered as HTML.
+
+The upstream endpoint can be changed server-side with `VIBELEADERBOARD_MCP_URL`; the default is the public production MCP endpoint. The browser talks only to `/api/vibe`.
 
 ## Run locally
 
@@ -23,7 +40,7 @@ npm install
 npm run dev
 ```
 
-Open `http://localhost:3000`. In a browser with WebMCP support, the status changes to **Agent connected**. In other browsers, the same public search and evidence workflow remains usable manually.
+Open the local URL shown by Next.js. In a WebMCP-capable browser, the status changes to **Agent connected**.
 
 ## Verify
 
@@ -33,10 +50,8 @@ npm run typecheck
 npm run build
 ```
 
-## Privacy and copyright posture
-
-The desk shows VibeLeaderboard-authored summaries, editorial context, limited quotations, and links back to the original source. It does not fetch or display article bodies or transcripts. The private VibeLeaderboard application is a pre-existing external service and is not part of this open-source client.
+The visual and interaction contract is documented in [`DESIGN.md`](./DESIGN.md).
 
 ## License
 
-MIT. See [LICENSE](./LICENSE).
+MIT. See [`LICENSE`](./LICENSE).

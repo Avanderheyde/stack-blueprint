@@ -10,10 +10,18 @@ const request = (name: string, args: Record<string, unknown>) => new NextRequest
   body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name, arguments: args } }),
 });
 
-describe("public Intel proxy", () => {
-  it("rejects non-Intel and mutating tools", async () => {
-    const response = await POST(request("search_apps", { query: "anything" }));
+describe("public catalog proxy", () => {
+  it("rejects mutating and unapproved tools", async () => {
+    const response = await POST(request("create_app", { title: "anything" }));
     expect(response.status).toBe(400);
+  });
+
+  it("allows bounded public tool search", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    const response = await POST(request("search_apps", { query: "agent observability", limit: 6 }));
+    expect(response.status).toBe(200);
+    expect(fetchMock).toHaveBeenCalledOnce();
   });
 
   it("bounds semantic-search work before reaching upstream", async () => {
@@ -21,6 +29,20 @@ describe("public Intel proxy", () => {
     vi.stubGlobal("fetch", fetchMock);
     const response = await POST(request("search_intel", { query: "x".repeat(501), limit: 12 }));
     expect(response.status).toBe(400);
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("rejects oversized bodies even without a content-length header", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+    const oversized = new NextRequest("http://localhost/api/vibe", {
+      method: "POST",
+      headers: { "content-type": "application/json" },
+      body: JSON.stringify({ jsonrpc: "2.0", id: 1, method: "tools/call", params: { name: "search_intel", arguments: { query: "x".repeat(13_000) } } }),
+    });
+    oversized.headers.delete("content-length");
+    const response = await POST(oversized);
+    expect(response.status).toBe(413);
     expect(fetchMock).not.toHaveBeenCalled();
   });
 

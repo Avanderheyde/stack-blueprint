@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { callVibeTool, sanitizeIntelItem } from "@/lib/vibeleaderboard";
+import { callVibeTool, sanitizeCatalogApp, sanitizeIntelItem } from "@/lib/vibeleaderboard";
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -46,5 +46,22 @@ describe("public VibeLeaderboard MCP client", () => {
     expect(item).not.toHaveProperty("key_quotes");
     expect(item).not.toHaveProperty("body_text");
     expect(item).not.toHaveProperty("injected");
+  });
+
+  it("keeps only public catalog fields", () => {
+    const app = sanitizeCatalogApp({
+      id: "tool-one",
+      title: "Useful tool",
+      github_url: "https://github.com/example/tool",
+      maintained: true,
+      secret_score: 99,
+    });
+    expect(app).toEqual(expect.objectContaining({ id: "tool-one", maintained: true }));
+    expect(app).not.toHaveProperty("secret_score");
+  });
+
+  it("drops unsafe links returned by upstream content", () => {
+    expect(sanitizeIntelItem({ id: "one", title: "Unsafe", source_url: "javascript:alert(1)" }).source_url).toBeNull();
+    expect(sanitizeCatalogApp({ id: "two", title: "Unsafe", url: "data:text/html,bad" }).url).toBeNull();
   });
 });

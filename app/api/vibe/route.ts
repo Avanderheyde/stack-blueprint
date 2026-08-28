@@ -5,6 +5,8 @@ const UPSTREAM_MCP_URL =
 
 const ALLOWED_TOOLS = new Set([
   "search_intel",
+  "search_apps",
+  "get_app",
   "what_changed",
   "latest_brief",
   "get_intel",
@@ -28,7 +30,11 @@ export async function POST(request: NextRequest) {
 
   let body: RpcRequest;
   try {
-    body = await request.json() as RpcRequest;
+    const rawBody = await request.text();
+    if (new TextEncoder().encode(rawBody).byteLength > MAX_BODY_BYTES) {
+      return Response.json({ error: "Request body is too large." }, { status: 413 });
+    }
+    body = JSON.parse(rawBody) as RpcRequest;
   } catch {
     return Response.json({ error: "Invalid JSON body." }, { status: 400 });
   }
@@ -53,13 +59,18 @@ export async function POST(request: NextRequest) {
   const args = (rawArgs ?? {}) as Record<string, unknown>;
   const limit = Number(args.limit ?? 8);
 
-  if (toolName === "search_intel") {
+  if (toolName === "search_intel" || toolName === "search_apps") {
     if (typeof args.query !== "string" || !args.query.trim() || args.query.length > 500) {
       return Response.json({ error: "query must contain 1–500 characters." }, { status: 400 });
     }
     if (!Number.isInteger(limit) || limit < 1 || limit > 12) {
       return Response.json({ error: "limit must be an integer from 1–12." }, { status: 400 });
     }
+  }
+
+
+  if (toolName === "get_app" && (typeof args.id !== "string" || !UUID.test(args.id))) {
+    return Response.json({ error: "id must be a UUID." }, { status: 400 });
   }
 
   if (toolName === "what_changed") {
