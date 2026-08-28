@@ -46,6 +46,7 @@ export function ResearchDesk() {
   const [brief, setBrief] = useState<Brief | null>(null);
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [briefPromptCopied, setBriefPromptCopied] = useState(false);
   const [webMcp, setWebMcp] = useState<"checking" | "ready" | "unavailable">("checking");
   const [activity, setActivity] = useState<string[]>(["Desk opened. Waiting for a research question."]);
 
@@ -271,6 +272,20 @@ export function ResearchDesk() {
   };
 
   const evidenceById = useMemo(() => new Map(evidence.map((item) => [item.id, item])), [evidence]);
+  const citedBriefPrompt = useMemo(
+    () => `Using the ${evidence.length} sources pinned in the evidence ledger, draft a concise brief answering: “${question}” Render it on this page, cite every finding with pinned evidence, and end with open questions.`,
+    [evidence.length, question]
+  );
+
+  const copyBriefPrompt = async () => {
+    try {
+      await navigator.clipboard.writeText(citedBriefPrompt);
+      setBriefPromptCopied(true);
+      window.setTimeout(() => setBriefPromptCopied(false), 2400);
+    } catch {
+      setError("Copy failed. Select the prompt and paste it into your browser-agent chat.");
+    }
+  };
 
   return (
     <main>
@@ -412,8 +427,26 @@ export function ResearchDesk() {
               </article>
             ) : (
               <div className="draft-empty">
-                <p>Once evidence is pinned, ask your agent to draft a cited brief on the page.</p>
-                <code>draft_cited_vibe_brief</code>
+                {evidence.length === 0 ? (
+                  <>
+                    <span>PIN EVIDENCE FIRST</span>
+                    <p>The brief can cite only sources in your evidence ledger.</p>
+                  </>
+                ) : (
+                  <>
+                    <span>READY TO SYNTHESIZE</span>
+                    <h3>Ask your browser agent</h3>
+                    <p className="agent-prompt">“{citedBriefPrompt}”</p>
+                    <button type="button" onClick={() => void copyBriefPrompt()}>
+                      {briefPromptCopied ? "PROMPT COPIED ✓" : "COPY AGENT PROMPT"}
+                    </button>
+                    <small aria-live="polite">
+                      {briefPromptCopied
+                        ? "Now paste it into the browser-agent chat beside this page."
+                        : "Paste this into the browser-agent chat beside this page."}
+                    </small>
+                  </>
+                )}
               </div>
             )}
           </div>

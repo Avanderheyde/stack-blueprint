@@ -76,7 +76,7 @@ main { min-height: 100vh; }
 .empty { min-height: 370px; display: grid; place-content: center; text-align: center; color: var(--muted); }
 .empty span { font-size: 10px; letter-spacing: .14em; }
 .empty p { max-width: 390px; font: 400 18px/1.5 var(--font-serif), serif; }
-.empty code, .draft-empty code { color: var(--signal); font-size: .75em; }
+.empty code { color: var(--signal); font-size: .75em; }
 .signal-list { margin: 0; padding: 0; list-style: none; }
 .signal-card { display: grid; grid-template-columns: 48px minmax(0, 1fr); gap: 12px; padding: 24px 0 26px; border-bottom: 1px solid var(--rule); }
 .signal-number { padding-top: 3px; color: var(--signal); font: 400 25px/1 var(--font-display), serif; }
@@ -102,8 +102,14 @@ main { min-height: 100vh; }
 .evidence-list button { position: absolute; top: 20px; right: 0; border: 0; border-bottom: 1px solid var(--night-rule); padding: 2px 0; background: none; color: var(--night-muted); font-size: 7px; letter-spacing: .1em; cursor: pointer; }
 .brief-block { margin-top: 42px; padding-top: 18px; border-top: 2px solid var(--paper); }
 .brief-label { color: var(--signal-soft); }
-.draft-empty { min-height: 250px; display: grid; place-content: center; text-align: center; color: var(--night-muted); }
-.draft-empty p { max-width: 350px; font: 400 18px/1.5 var(--font-serif), serif; }
+.draft-empty { min-height: 250px; display: flex; flex-direction: column; align-items: center; justify-content: center; text-align: center; color: var(--night-muted); }
+.draft-empty > span { color: var(--signal-soft); font-size: 8px; letter-spacing: .14em; }
+.draft-empty h3 { margin: 10px 0 8px; color: var(--paper); font: 400 27px/1.1 var(--font-serif), serif; }
+.draft-empty p { max-width: 390px; margin: 14px 0; font: 400 18px/1.5 var(--font-serif), serif; }
+.draft-empty .agent-prompt { padding: 16px 0; border-top: 1px solid var(--night-rule); border-bottom: 1px solid var(--night-rule); color: var(--paper); font-size: 15px; line-height: 1.5; }
+.draft-empty button { min-height: 38px; margin-top: 4px; border: 1px solid var(--signal-soft); padding: 0 15px; background: transparent; color: var(--signal-soft); font-size: 8px; letter-spacing: .13em; cursor: pointer; }
+.draft-empty button:hover { background: var(--signal); border-color: var(--signal); color: var(--paper); }
+.draft-empty small { min-height: 28px; max-width: 340px; margin-top: 10px; font-size: 8px; line-height: 1.5; letter-spacing: .04em; }
 .brief h2 { margin: 22px 0 10px; font: 400 38px/.98 var(--font-display), serif; }
 .brief .thesis { margin: 0 0 28px; color: var(--night-muted); font: italic 400 19px/1.45 var(--font-serif), serif; }
 .brief ol { margin: 0; padding-left: 25px; }
