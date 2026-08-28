@@ -39,7 +39,7 @@ describe("automatic blueprint consultation", () => {
 
     expect(names).toEqual(expect.arrayContaining([
       "Expo", "React Native", "NativeWind", "Supabase", "EAS Build",
-      "Codex", "GPT-5.6 Sol", "frontend-design", "supabase", "verification",
+      "Codex", "GPT-5.6 Sol", "frontend-design", "Impeccable", "supabase", "verification",
     ]));
     expect(names).not.toContain("OpenAI Responses API");
     expect(names).not.toContain("Cloudinary");
@@ -69,6 +69,13 @@ describe("automatic blueprint consultation", () => {
     const names = specificStackFor(project, profile, draftChoices(project, profile)).map((pick) => pick.name);
     expect(names).toContain("OpenAI Realtime API");
     expect(names).not.toContain("OpenAI Responses API");
+  });
+
+  it("adds a professional UI execution layer instead of stopping at the framework", () => {
+    const project = "A straightforward customer support web app";
+    const profile = inferProfile(project);
+    const names = specificStackFor(project, profile, draftChoices(project, profile)).map((pick) => pick.name);
+    expect(names).toEqual(expect.arrayContaining(["frontend-design", "Impeccable", "verification"]));
   });
 
   it("keeps a local-only medical product off cloud data and telemetry services", () => {

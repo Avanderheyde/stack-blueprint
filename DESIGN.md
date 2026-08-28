@@ -77,3 +77,4 @@ No comparison grids, alternative cards, dense explanatory copy in the overview, 
 - 2026-08-27: Rejected the remaining module and alternative-choice system. The public answer is now a slowly drawn three-branch graph of exact tool logos; rationale appears only when a logo is opened.
 - 2026-08-28: Added quiet category labels to each node and made the Vibe Intel node expose the actual cited research packet returned to the calling agent.
 - 2026-08-28: Added related VibeLeaderboard entries as decision context and an agent refinement step. Similarity is explicitly treated as a clue to evaluate, never a stack to copy.
+- 2026-08-28: Clarified the product's differentiation: conventional stacks are acceptable; the WebMCP adds a researched AI execution layer with frontend direction, anti-slop refinement, hardening, verification, and current tool candidates.
