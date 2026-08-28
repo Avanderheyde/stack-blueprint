@@ -21,8 +21,8 @@ const mono = IBM_Plex_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Agent Blueprint: Design your agent stack",
-  description: "A human-and-agent workspace for choosing models, tools, skills, memory, evals, and deployment architecture together.",
+  title: "Stack Blueprint: Choose your software and AI building stack",
+  description: "An evidence-aware WebMCP consultant for choosing a complete software stack and the AI tools used to build it.",
 };
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {

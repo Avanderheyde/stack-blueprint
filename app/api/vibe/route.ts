@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     !ALLOWED_TOOLS.has(toolName)
   ) {
     return Response.json(
-      { error: "Only public, read-only VibeLeaderboard Intel tools are available." },
+      { error: "Only public, read-only VibeLeaderboard catalog and Intel tools are available." },
       { status: 400 }
     );
   }
@@ -115,7 +115,7 @@ export async function POST(request: NextRequest) {
 export function GET() {
   return Response.json(
     {
-      service: "Vibe Intel Desk public-data proxy",
+      service: "Stack Blueprint public-evidence proxy",
       upstream: "VibeLeaderboard MCP",
       tools: [...ALLOWED_TOOLS],
       authentication: "none",

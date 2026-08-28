@@ -1,10 +1,10 @@
-# Agent Blueprint — Design Contract
+# Stack Blueprint — Design Contract
 
 ## Product context
 
-Agent Blueprint is the first conversation at the start of an agent project. A builder and browser agent progressively choose the model strategy, runtime, tools, skills, memory, evaluation system, and execution boundary. The memorable thing is: **the architecture is revealed one decision at a time, and the human owns every lock.**
+Stack Blueprint is the first consultation at the start of any software project. A builder's browser agent consults a comprehensive decision taxonomy, VibeLeaderboard's public tool survey, and current Intel to recommend both the production software stack and the AI toolkit used to build it. The memorable thing is: **the whole project is revealed one informed decision at a time, and the human owns every lock.**
 
-Audience: AI-assisted builders and agent engineers who need informed starting decisions without pretending there is one universal stack.
+Audience: technical and AI-assisted builders choosing a new project's architecture, services, developer tools, and agent workflow. They need education and tradeoffs, not a generic list of fashionable products.
 
 ## Aesthetic direction
 
@@ -31,10 +31,12 @@ Survey yellow is reserved for the primary kickoff action, the selected option, l
 
 ## Content encoding
 
-- Each layer must show three structurally different approaches, not vendor-logo collections.
+- The decision system must cover the practical categories in a complete modern software stack plus the AI tools used to research, design, implement, review, test, and ship it.
+- Each layer must show three structurally different approaches, not a vendor-logo collection.
 - Every option must expose `best for` and `tradeoff` before selection.
-- Agent recommendations may name a specific implementation and cite only evidence searched through the page.
+- Agent recommendations may name a specific implementation after consulting the public tool survey and Intel. Intel citations must have been searched through the page.
 - A recommendation never silently becomes a decision. Only an explicit lock advances the drawing.
+- Any layer may be explicitly omitted when it does not serve the project. Comprehensive coverage must not become forced complexity.
 - No transcripts, article bodies, private data, vanity inventory totals, or invented performance scores.
 
 ## Layout
@@ -64,7 +66,9 @@ No gradients, rounded card grids, decorative icons, blobs, grain, faux 3D, gener
 
 ## Decisions log
 
-- 2026-08-27: Pivoted from evidence desk to interactive agent-stack architect. Intel remains the evidence layer.
+- 2026-08-27: Pivoted from evidence desk toward interactive stack architecture. Intel remains one evidence layer.
 - 2026-08-27: Adopted blueprint-construction identity at the user's direction.
 - 2026-08-27: Replaced the former warm dark serif aesthetic because it obscured the product interaction and matched a current AI-design default.
 - 2026-08-27: Made explicit human locking the central trust and progression mechanic.
+- 2026-08-27: Corrected the scope from agent-system architecture to any software project. AI is an optional product layer and a separate builder-toolkit schedule.
+- 2026-08-27: Expanded the survey to every category in Arjay's Stack Picker plus architecture, security, AI coding agents, builder models, research, design assistance, skills, MCP, and independent QA.
