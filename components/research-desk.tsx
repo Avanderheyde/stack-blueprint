@@ -554,12 +554,12 @@ export function ResearchDesk() {
     const deferred = deferredSuggestionsFor(project, profile, draftPicks);
     const stackTerms = draftPicks.filter((pick) => pick.branch !== "build" && pick.id !== "vibe-intel").slice(0, 12).map((pick) => pick.name).join(" ");
     const workspaceQuery = `${project} ${stackTerms}`;
-    const toolQueries: Array<{ query: string; filters: ToolSearchFilters; take: number; requiredTitle?: string }> = [
-      { query: `${workspaceQuery} project-specific implementation skills code quality performance`, filters: { tool_type: "skill" }, take: 1 },
-      { query: `${workspaceQuery} deterministic testing verification diagnostics`, filters: { primary_domain: "software_development", capability: "test_software" }, take: 2 },
+    const toolQueries: Array<{ query: string; filters: ToolSearchFilters; take: number; requiredTitle?: string; allowedTypes?: Array<NonNullable<CatalogApp["tool_type"]>> }> = [
+      { query: `${workspaceQuery} deterministic testing verification diagnostics`, filters: { primary_domain: "software_development", capability: "test_software" }, take: 2, allowedTypes: ["benchmark_eval", "utility", "library_sdk", "skill"] },
     ];
     if (["web", "mobile", "ai-product", "browser-extension", "desktop", "static-site", "commerce"].includes(profile.projectKind)) {
-      toolQueries.push({ query: `${workspaceQuery} professional interface design accessibility animation anti-slop`, filters: { tool_type: "skill", capability: "design_interfaces" }, take: 2 });
+      toolQueries.unshift({ query: `${workspaceQuery} project-specific implementation skills code quality performance`, filters: { tool_type: "skill" }, take: 1, allowedTypes: ["skill"] });
+      toolQueries.push({ query: `${workspaceQuery} professional interface design accessibility animation anti-slop`, filters: { tool_type: "skill", capability: "design_interfaces" }, take: 2, allowedTypes: ["skill"] });
     }
     const connectorParents = ["Supabase", "Sentry", "Stripe", "Vercel", "Shopify"];
     draftPicks.filter((pick) => connectorParents.includes(pick.name)).forEach((pick) => {
@@ -585,9 +585,12 @@ export function ResearchDesk() {
     const executionApps = toolSettled.flatMap((result, index) => {
       if (result.status !== "fulfilled") return [];
       const spec = toolQueries[index];
-      const relevant = spec.requiredTitle
-        ? result.value.tools.filter((tool) => tool.title.toLowerCase().includes(spec.requiredTitle!.toLowerCase()))
+      const typed = spec.allowedTypes
+        ? result.value.tools.filter((tool) => tool.tool_type && spec.allowedTypes!.includes(tool.tool_type))
         : result.value.tools;
+      const relevant = spec.requiredTitle
+        ? typed.filter((tool) => tool.title.toLowerCase().includes(spec.requiredTitle!.toLowerCase()))
+        : typed;
       return relevant.slice(0, spec.take);
     });
     const consultedIntel = intelSettled.flatMap((result) => result.status === "fulfilled" ? result.value.items : []);
