@@ -64,6 +64,9 @@ a { color: inherit; }
 .stack-branch { position: relative; min-width: 0; }
 .stack-branch::before { position: absolute; top: -26px; left: 50%; width: 1px; height: 26px; content: ""; background: var(--blue); transform-origin: top; animation: grow-y 320ms 220ms cubic-bezier(.22, 1, .36, 1) both; }
 .stack-branch h3 { margin: 0 0 12px; padding-bottom: 9px; border-bottom: 1px solid var(--line); color: var(--muted); font: 600 9px/1 var(--font-mono), monospace; letter-spacing: .12em; text-align: center; }
+.pick-groups { display: grid; gap: 16px; }
+.pick-subgroup { display: grid; gap: 8px; }
+.pick-subgroup > span { color: var(--muted); font: 500 7px/1 var(--font-mono), monospace; letter-spacing: .14em; text-transform: uppercase; }
 .pick-list { display: grid; gap: 10px; }
 .tool-pick { position: relative; min-width: 0; min-height: 62px; display: grid; grid-template-columns: 40px minmax(0, 1fr) 20px; align-items: center; gap: 12px; border: 1px solid var(--line); border-radius: 10px; padding: 9px 12px; background: var(--panel); color: var(--ink); text-align: left; cursor: pointer; animation: place-node 440ms cubic-bezier(.22, 1, .36, 1) both; }
 .tool-pick::before { position: absolute; top: -11px; left: 50%; width: 1px; height: 10px; content: ""; background: var(--line-strong); transform-origin: top; animation: grow-y 240ms cubic-bezier(.22, 1, .36, 1) both; }

@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildCatalogPacket, buildIntelPacket, draftChoices, inferProfile, specificStackFor } from "@/components/research-desk";
+import { buildCatalogPacket, buildIntelPacket, deferredSuggestionsFor, draftChoices, inferProfile, specificStackFor } from "@/components/research-desk";
 
 describe("automatic blueprint consultation", () => {
   it("infers a playful mobile prototype without asking stack questions", () => {
@@ -88,6 +88,15 @@ describe("automatic blueprint consultation", () => {
     const paidProfile = inferProfile(paidApp);
     const paidNames = specificStackFor(paidApp, paidProfile, draftChoices(paidApp, paidProfile)).map((pick) => pick.name);
     expect(paidNames).toEqual(expect.arrayContaining(["Supabase MCP", "Sentry MCP", "Stripe MCP", "Vercel MCP"]));
+  });
+
+  it("keeps prototype production tools deferred and CI outside the AI branch", () => {
+    const project = "A weekend mobile prototype for roommates";
+    const profile = inferProfile(project);
+    const picks = specificStackFor(project, profile, draftChoices(project, profile));
+    expect(picks.find((pick) => pick.name === "GitHub Actions")?.branch).toBe("services");
+    expect(deferredSuggestionsFor(project, profile, picks).map((item) => item.name)).toEqual(["Sentry", "PostHog"]);
+    expect(picks.map((pick) => pick.name)).not.toEqual(expect.arrayContaining(["Sentry", "PostHog"]));
   });
 
   it("keeps a local-only medical product off cloud data and telemetry services", () => {

@@ -79,3 +79,4 @@ No comparison grids, alternative cards, dense explanatory copy in the overview, 
 - 2026-08-28: Added related VibeLeaderboard entries as decision context and an agent refinement step. Similarity is explicitly treated as a clue to evaluate, never a stack to copy.
 - 2026-08-28: Clarified the product's differentiation: conventional stacks are acceptable; the WebMCP adds a researched AI execution layer with frontend direction, anti-slop refinement, hardening, verification, and current tool candidates.
 - 2026-08-28: Made the AI build layer conditional on the product stack. Major selections now pull their companion MCPs and diagnostics so the calling agent is equipped to implement and operate the chosen technologies.
+- 2026-08-28: Grouped the AI layer into harness/model, MCPs, skills, diagnostics/CLIs, and Intel; moved CI into services and delivery. Prototype-only production tools remain out of the graph and are returned as intentional deferrals.

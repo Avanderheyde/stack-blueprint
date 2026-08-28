@@ -16,6 +16,8 @@ The internal consultation covers:
 
 The overview shows only the answer: exact products, frameworks, services, coding harness, builder model, repository skills, CI, research, and verification tools. It omits unnecessary services automatically. Rationale stays behind each logo so the initial result remains easy to scan; it does not present an alternative-choice grid unless a user explicitly asks for one.
 
+The AI branch groups harness/model, MCPs, skills, diagnostics/CLIs, and Intel separately. Delivery infrastructure such as GitHub Actions lives with services and delivery, not under AI. Prototype blueprints keep production observability and analytics out of the visible graph while returning them to the calling agent as intentional deferrals.
+
 ## WebMCP collaboration
 
 The page registers six visible tools:
@@ -31,7 +33,7 @@ The same automatic build and click-to-explain flow remains usable manually in br
 
 ## Why the WebMCP matters
 
-A plain agent may choose the same sensible framework and backend. Stack Blueprint turns those choices into an empowered agent workspace: selected products automatically trigger their companion MCPs, diagnostics, implementation skills, hardening, verification, and release gates. It also returns current execution-tool candidates, related VibeLeaderboard entries, and citable Intel. The initial stack remains a hypothesis: a similar app is not proof, and the calling agent must assess whether each observed pattern or tool actually improves this project.
+A plain agent may choose the same sensible framework and backend. Stack Blueprint turns those choices into an empowered agent workspace: selected products automatically trigger their companion MCPs, diagnostics, implementation skills, hardening, verification, and release gates. It also returns current execution-tool candidates, related VibeLeaderboard entries, and citable agent-practice Intel about planning, context, verification, and getting better results from coding agents. The initial stack remains a hypothesis: a similar app is not proof, and the calling agent must assess whether each observed pattern or tool actually improves this project.
 
 ## Public evidence boundary
 
