@@ -535,16 +535,19 @@ export function ResearchDesk() {
     const choices = draftChoices(project, profile);
     const draftPicks = specificStackFor(project, profile, choices);
     const deferred = deferredSuggestionsFor(project, profile, draftPicks);
-    const stackTerms = draftPicks.filter((pick) => pick.id !== "vibe-intel").slice(0, 12).map((pick) => pick.name).join(" ");
+    const stackTerms = draftPicks.filter((pick) => pick.branch !== "build" && pick.id !== "vibe-intel").slice(0, 12).map((pick) => pick.name).join(" ");
     const workspaceQuery = `${project} ${stackTerms}`;
-    const toolQueries: Array<{ query: string; filters: ToolSearchFilters }> = [
-      { query: `${workspaceQuery} project-specific implementation skills code quality performance`, filters: { tool_type: "skill" } },
-      { query: `${workspaceQuery} connected development integrations for the selected services`, filters: { tool_type: "mcp_server", interface: "mcp" } },
-      { query: `${workspaceQuery} deterministic testing verification diagnostics`, filters: { primary_domain: "software_development", capability: "test_software" } },
+    const toolQueries: Array<{ query: string; filters: ToolSearchFilters; take: number; requiredTitle?: string }> = [
+      { query: `${workspaceQuery} project-specific implementation skills code quality performance`, filters: { tool_type: "skill" }, take: 1 },
+      { query: `${workspaceQuery} deterministic testing verification diagnostics`, filters: { primary_domain: "software_development", capability: "test_software" }, take: 2 },
     ];
     if (["web", "mobile", "ai-product", "browser-extension", "desktop", "static-site", "commerce"].includes(profile.projectKind)) {
-      toolQueries.push({ query: `${workspaceQuery} professional interface design accessibility animation anti-slop`, filters: { tool_type: "skill", capability: "design_interfaces" } });
+      toolQueries.push({ query: `${workspaceQuery} professional interface design accessibility animation anti-slop`, filters: { tool_type: "skill", capability: "design_interfaces" }, take: 2 });
     }
+    const connectorParents = ["Supabase", "Sentry", "Stripe", "Vercel", "Shopify"];
+    draftPicks.filter((pick) => connectorParents.includes(pick.name)).forEach((pick) => {
+      toolQueries.push({ query: `${pick.name} official MCP server for development`, filters: { tool_type: "mcp_server", interface: "mcp" }, take: 1, requiredTitle: pick.name });
+    });
     const intelQueries = [
       "coding agent harness context engineering project instructions acceptance criteria independent evaluator verification quality gates",
       "harness design long-running application development independent evaluator context reset coding agents",
@@ -555,7 +558,14 @@ export function ResearchDesk() {
       Promise.allSettled(intelQueries.map((query) => searchIntel(query, 8))),
     ]);
     const surveyedTools = toolSettled.flatMap((result) => result.status === "fulfilled" ? result.value.tools : []);
-    const executionApps = toolSettled.flatMap((result) => result.status === "fulfilled" ? result.value.tools : []);
+    const executionApps = toolSettled.flatMap((result, index) => {
+      if (result.status !== "fulfilled") return [];
+      const spec = toolQueries[index];
+      const relevant = spec.requiredTitle
+        ? result.value.tools.filter((tool) => tool.title.toLowerCase().includes(spec.requiredTitle!.toLowerCase()))
+        : result.value.tools;
+      return relevant.slice(0, spec.take);
+    });
     const consultedIntel = intelSettled.flatMap((result) => result.status === "fulfilled" ? result.value.items : []);
     const uniqueTools = [...new Map(surveyedTools.map((item) => [item.id, item])).values()];
     const uniqueIntel = [...new Map(consultedIntel.map((item) => [item.id, item])).values()];
