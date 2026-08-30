@@ -35,6 +35,22 @@ describe("automatic blueprint consultation", () => {
     expect(inferProfile("A SaaS web app where design teams review client files").projectKind).toBe("web");
   });
 
+  it("does not mistake words containing api for an API service", () => {
+    const project = "A private offline mood journal for therapists that never uploads patient notes and works as an installable web app";
+    const profile = inferProfile(project);
+    const names = specificStackFor(project, profile, draftChoices(project, profile)).map((pick) => pick.name);
+    expect(profile.projectKind).toBe("web");
+    expect(names).toEqual(expect.arrayContaining(["Vite", "Dexie", "Workbox", "Cloudflare Pages"]));
+    expect(names).not.toContain("Railway");
+  });
+
+  it("treats an explicit Stripe integration as a payment dependency", () => {
+    const project = "A backend webhook service that receives Stripe events and verifies signatures";
+    const profile = inferProfile(project);
+    const names = specificStackFor(project, profile, draftChoices(project, profile)).map((pick) => pick.name);
+    expect(names).toEqual(expect.arrayContaining(["Stripe", "Stripe MCP"]));
+  });
+
   it("returns specific software, harness, model, and skill picks", () => {
     const project = "A silly mobile app for roommates with photo uploads and push notifications, no payments";
     const profile = inferProfile(project);
@@ -134,18 +150,24 @@ describe("automatic blueprint consultation", () => {
     ], "React interface design accessibility");
     expect(focusedIntel[0]?.title).toBe("Design systems for React");
 
+    const stackAwareIntel = buildIntelPacket([
+      { id: "wrong-host", title: "Faster deploys for ISR pages on Vercel", why: "Optimize ISR releases.", relevance: 0.8, intel_page: "https://example.com/vercel" },
+      { id: "right-stack", title: "Offline React application testing", why: "Verify service workers and local state.", relevance: 0.6, intel_page: "https://example.com/offline" },
+    ], "React Vite Workbox Cloudflare offline application testing");
+    expect(stackAwareIntel.map((item) => item.title)).toEqual(["Offline React application testing"]);
+
     const catalog = buildCatalogPacket([
       { id: "related", title: "Related", relevance: 0.6, maintained: true, url: "https://example.com/related", why: "A nearby product pattern." },
       { id: "stale", title: "Stale", relevance: 0.8, maintained: false, url: "https://example.com/stale" },
       { id: "noise", title: "Noise", relevance: 0.2, maintained: true, url: "https://example.com/noise" },
-      { id: "typed", title: "Typed Skill", relevance: null, structured_match: true, tool_type: "skill", maintained: true, url: "https://example.com/typed" },
+      { id: "typed", title: "Typed Skill", relevance: null, structured_match: true, tool_type: "extension", maintained: true, url: "https://example.com/typed" },
     ]);
     expect(catalog.map((item) => item.title)).toEqual(["Related", "Typed Skill"]);
-    expect(catalog[1]?.category).toBe("SKILL");
+    expect(catalog[1]?.category).toBe("EXTENSION");
 
     const focusedCatalog = buildCatalogPacket([
-      { id: "match", title: "React Native Skills", structured_match: true, tool_type: "skill", maintained: true, url: "https://example.com/match", why: "Mobile performance guidance." },
-      { id: "noise-typed", title: "Research Helper", structured_match: true, tool_type: "skill", maintained: true, url: "https://example.com/noise", why: "Research social posts." },
+      { id: "match", title: "React Native Skills", structured_match: true, tool_type: "extension", maintained: true, url: "https://example.com/match", why: "Mobile performance guidance." },
+      { id: "noise-typed", title: "Research Helper", structured_match: true, tool_type: "extension", maintained: true, url: "https://example.com/noise", why: "Research social posts." },
     ], [], "React Native mobile performance");
     expect(focusedCatalog.map((item) => item.title)).toEqual(["React Native Skills"]);
   });

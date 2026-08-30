@@ -1,0 +1,23 @@
+{
+  "name": "stack-blueprint-demo-video",
+  "private": true,
+  "version": "0.1.0",
+  "scripts": {
+    "studio": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts StackBlueprintDemo out/stack-blueprint-demo.mp4 --codec=h264 --crf=18",
+    "still": "remotion still src/index.ts StackBlueprintDemo out/stack-blueprint-demo-poster.png --frame=45"
+  },
+  "dependencies": {
+    "@remotion/captions": "4.0.518",
+    "@remotion/cli": "4.0.518",
+    "@remotion/media": "4.0.518",
+    "@remotion/renderer": "4.0.518",
+    "react": "19.2.3",
+    "react-dom": "19.2.3",
+    "remotion": "4.0.518"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "typescript": "^5.9.0"
+  }
+}

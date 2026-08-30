@@ -49,28 +49,40 @@ export type CatalogApp = {
   maintained?: boolean | null;
   relevance?: number | null;
   tool_type?: ToolType | null;
-  tool_subtype?: string | null;
-  tool_interfaces?: ToolInterface[];
-  primary_domain?: ToolDomain | null;
-  tool_capabilities?: ToolCapability[];
+  interfaces?: ToolInterface[];
+  topics?: ToolTopic[];
+  source_availability?: ToolSourceAvailability | null;
   structured_match?: boolean;
 };
 
-export const TOOL_TYPES = ["agent_harness", "skill", "model", "model_runtime", "agent_runtime", "agent_framework", "orchestrator", "mcp_server", "library_sdk", "api_service", "ide_editor", "plugin_extension", "benchmark_eval", "dataset", "infrastructure", "utility", "application", "template_starter", "protocol_standard", "other"] as const;
-export const TOOL_INTERFACES = ["cli", "mcp", "api", "sdk", "web", "desktop", "mobile", "editor_extension", "browser_extension", "github_app"] as const;
-export const TOOL_DOMAINS = ["software_development", "infrastructure_operations", "data_knowledge", "security_identity", "design_creative", "productivity_collaboration", "business_growth", "finance_commerce", "research_education", "media_communication", "consumer_lifestyle", "other"] as const;
-export const TOOL_CAPABILITIES = ["write_code", "review_code", "test_software", "debug_software", "deploy_software", "monitor_systems", "automate_workflows", "orchestrate_agents", "run_models", "manage_data", "search_retrieve", "manage_knowledge", "secure_systems", "manage_identity", "design_interfaces", "create_images_video", "create_audio_voice", "write_content", "manage_work", "collaborate_communicate", "analyze_data", "market_sell", "process_payments", "manage_finances", "conduct_research", "learn_teach", "host_compute", "build_integrations"] as const;
+// VibeLeaderboard tool taxonomy V2.4. Type describes the adopted artifact,
+// Topic describes why someone adopts it, and Interface describes how it is used.
+export const TOOL_TYPES = ["agent", "application", "dev_environment", "utility", "model", "runtime", "dev_toolchain", "library_framework", "service", "mcp_server", "extension", "infrastructure", "evaluation_dataset", "template_starter", "protocol_standard"] as const;
+export const TOOL_TOPICS = ["coding", "agents_automation", "models", "data_knowledge", "testing_evaluation", "deployment_operations", "security_identity", "design_media", "work_business", "research_learning"] as const;
+export const TOOL_INTERFACES = ["cli", "web", "desktop", "mobile", "editor_extension", "browser_extension", "api", "client_sdk", "mcp", "github_app", "agent_skill", "host_plugin"] as const;
+export const TOOL_SOURCE_AVAILABILITY = ["open_source", "source_available", "closed_source", "unknown"] as const;
 
 export type ToolType = (typeof TOOL_TYPES)[number];
+export type ToolTopic = (typeof TOOL_TOPICS)[number];
 export type ToolInterface = (typeof TOOL_INTERFACES)[number];
-export type ToolDomain = (typeof TOOL_DOMAINS)[number];
-export type ToolCapability = (typeof TOOL_CAPABILITIES)[number];
+export type ToolSourceAvailability = (typeof TOOL_SOURCE_AVAILABILITY)[number];
 
 export type ToolSearchFilters = {
   tool_type?: ToolType;
   interface?: ToolInterface;
-  primary_domain?: ToolDomain;
-  capability?: ToolCapability;
+  topic?: ToolTopic;
+  open_source?: boolean;
+};
+
+type TaxonomyOption = { value: string; label: string };
+
+export type ToolTaxonomyResponse = {
+  taxonomy_version?: string;
+  tool_types: TaxonomyOption[];
+  topics: TaxonomyOption[];
+  interfaces: TaxonomyOption[];
+  source_availability: TaxonomyOption[];
+  field_rules?: Record<string, string>;
 };
 
 export type AppSearchResponse = {
@@ -155,10 +167,51 @@ export function sanitizeCatalogApp(value: unknown): CatalogApp {
     maintained: typeof app.maintained === "boolean" ? app.maintained : null,
     relevance: typeof app.relevance === "number" && Number.isFinite(app.relevance) ? app.relevance : null,
     tool_type: includes(TOOL_TYPES, app.tool_type),
-    tool_subtype: text(app.tool_subtype, 80),
-    tool_interfaces: list(TOOL_INTERFACES, app.tool_interfaces),
-    primary_domain: includes(TOOL_DOMAINS, app.primary_domain),
-    tool_capabilities: list(TOOL_CAPABILITIES, app.tool_capabilities),
+    interfaces: list(TOOL_INTERFACES, app.interfaces),
+    topics: list(TOOL_TOPICS, app.topics),
+    source_availability: includes(TOOL_SOURCE_AVAILABILITY, app.source_availability),
+  };
+}
+
+const taxonomyOptions = (value: unknown): TaxonomyOption[] => {
+  if (!Array.isArray(value)) return [];
+  return value.flatMap((entry) => {
+    if (!entry || typeof entry !== "object") return [];
+    const row = entry as Record<string, unknown>;
+    const value = text(row.value, 80);
+    const label = text(row.label, 120);
+    return value && label && /^[a-z][a-z0-9_]*$/.test(value) ? [{ value, label }] : [];
+  });
+};
+
+export function sanitizeToolTaxonomy(value: unknown): ToolTaxonomyResponse {
+  const row = value && typeof value === "object" ? value as Record<string, unknown> : {};
+  const rules = row.field_rules && typeof row.field_rules === "object"
+    ? Object.fromEntries(Object.entries(row.field_rules as Record<string, unknown>)
+      .flatMap(([key, value]) => {
+        const safeKey = /^[a-z][a-z0-9_]*$/.test(key) ? key : null;
+        const safeValue = text(value, 500);
+        return safeKey && safeValue ? [[safeKey, safeValue]] : [];
+      }))
+    : undefined;
+  return {
+    taxonomy_version: text(row.taxonomy_version, 80) ?? undefined,
+    tool_types: taxonomyOptions(row.tool_types),
+    topics: taxonomyOptions(row.topics),
+    interfaces: taxonomyOptions(row.interfaces),
+    source_availability: taxonomyOptions(row.source_availability),
+    ...(rules ? { field_rules: rules } : {}),
+  };
+}
+
+export function filtersSupportedByTaxonomy(filters: ToolSearchFilters, taxonomy: ToolTaxonomyResponse | null): ToolSearchFilters {
+  if (!taxonomy) return filters;
+  const has = (items: TaxonomyOption[], value: string | undefined) => !value || items.some((item) => item.value === value);
+  return {
+    ...(has(taxonomy.tool_types, filters.tool_type) ? { tool_type: filters.tool_type } : {}),
+    ...(has(taxonomy.interfaces, filters.interface) ? { interface: filters.interface } : {}),
+    ...(has(taxonomy.topics, filters.topic) ? { topic: filters.topic } : {}),
+    ...(filters.open_source === true && taxonomy.source_availability.some((item) => item.value === "open_source") ? { open_source: true } : {}),
   };
 }
 
@@ -216,6 +269,10 @@ export async function searchTools(query: string, filters: ToolSearchFilters = {}
     ...response,
     tools: (response.tools ?? []).map((value) => ({ ...sanitizeCatalogApp(value), structured_match: true })),
   };
+}
+
+export async function getToolTaxonomy() {
+  return sanitizeToolTaxonomy(await callVibeTool<unknown>("tool_taxonomy"));
 }
 
 export async function getRecentIntel(since?: string, limit = 12) {

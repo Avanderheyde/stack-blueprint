@@ -27,7 +27,7 @@ describe("public catalog proxy", () => {
   it("allows canonical structured filters", async () => {
     const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
     vi.stubGlobal("fetch", fetchMock);
-    const response = await POST(request("search_tools", { query: "Expo testing", tool_type: "skill", capability: "test_software", limit: 6 }));
+    const response = await POST(request("search_tools", { query: "Expo testing", tool_type: "extension", interface: "agent_skill", topic: "testing_evaluation", open_source: true, limit: 6 }));
     expect(response.status).toBe(200);
     expect(fetchMock).toHaveBeenCalledOnce();
   });

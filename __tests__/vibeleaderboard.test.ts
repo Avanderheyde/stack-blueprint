@@ -1,5 +1,5 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { callVibeTool, sanitizeCatalogApp, sanitizeIntelItem, searchTools } from "@/lib/vibeleaderboard";
+import { callVibeTool, filtersSupportedByTaxonomy, sanitizeCatalogApp, sanitizeIntelItem, sanitizeToolTaxonomy, searchTools } from "@/lib/vibeleaderboard";
 
 afterEach(() => vi.unstubAllGlobals());
 
@@ -64,29 +64,48 @@ describe("public VibeLeaderboard MCP client", () => {
     const app = sanitizeCatalogApp({
       id: "tool-one",
       title: "Useful skill",
-      tool_type: "skill",
-      tool_interfaces: ["cli", "telepathy"],
-      primary_domain: "software_development",
-      tool_capabilities: ["write_code", "take_over_machine"],
+      tool_type: "extension",
+      interfaces: ["agent_skill", "telepathy"],
+      topics: ["coding", "take_over_machine"],
+      source_availability: "open_source",
     });
     expect(app).toEqual(expect.objectContaining({
-      tool_type: "skill",
-      tool_interfaces: ["cli"],
-      primary_domain: "software_development",
-      tool_capabilities: ["write_code"],
+      tool_type: "extension",
+      interfaces: ["agent_skill"],
+      topics: ["coding"],
+      source_availability: "open_source",
     }));
   });
 
   it("sends structured filters and marks ranked results as structured matches", async () => {
     const fetchMock = vi.fn().mockResolvedValue({
       ok: true,
-      json: async () => ({ result: { content: [{ type: "text", text: JSON.stringify({ tools: [{ id: "one", title: "Expo skill", tool_type: "skill" }] }) }] } }),
+      json: async () => ({ result: { content: [{ type: "text", text: JSON.stringify({ tools: [{ id: "one", title: "Expo skill", tool_type: "extension", interfaces: ["agent_skill"] }] }) }] } }),
     });
     vi.stubGlobal("fetch", fetchMock);
-    const response = await searchTools("Expo implementation", { tool_type: "skill" }, 6);
-    expect(response.tools[0]).toEqual(expect.objectContaining({ tool_type: "skill", structured_match: true }));
+    const response = await searchTools("Expo implementation", { tool_type: "extension", interface: "agent_skill", topic: "coding", open_source: true }, 6);
+    expect(response.tools[0]).toEqual(expect.objectContaining({ tool_type: "extension", interfaces: ["agent_skill"], structured_match: true }));
     const options = fetchMock.mock.calls[0][1] as RequestInit;
-    expect(JSON.parse(String(options.body)).params.arguments).toEqual({ query: "Expo implementation", tool_type: "skill", limit: 6 });
+    expect(JSON.parse(String(options.body)).params.arguments).toEqual({ query: "Expo implementation", tool_type: "extension", interface: "agent_skill", topic: "coding", open_source: true, limit: 6 });
+  });
+
+  it("discovers and safely constrains filters to the live V2 taxonomy", () => {
+    const taxonomy = sanitizeToolTaxonomy({
+      taxonomy_version: "tool-taxonomy-v2.4",
+      tool_types: [{ value: "extension", label: "Extension" }, { value: "<script>", label: "Bad" }],
+      topics: [{ value: "coding", label: "Coding" }],
+      interfaces: [{ value: "agent_skill", label: "Agent Skill / Plugin" }],
+      source_availability: [{ value: "open_source", label: "Open source" }],
+      field_rules: { tool_type: "One primary form.", "bad-key": "drop me" },
+    });
+
+    expect(taxonomy.tool_types).toEqual([{ value: "extension", label: "Extension" }]);
+    expect(taxonomy.field_rules).toEqual({ tool_type: "One primary form." });
+    expect(filtersSupportedByTaxonomy({ tool_type: "extension", interface: "agent_skill", topic: "design_media", open_source: true }, taxonomy)).toEqual({
+      tool_type: "extension",
+      interface: "agent_skill",
+      open_source: true,
+    });
   });
 
   it("drops unsafe links returned by upstream content", () => {

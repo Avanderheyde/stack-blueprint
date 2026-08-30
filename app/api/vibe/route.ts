@@ -1,5 +1,5 @@
 import { NextRequest } from "next/server";
-import { TOOL_CAPABILITIES, TOOL_DOMAINS, TOOL_INTERFACES, TOOL_TYPES } from "@/lib/vibeleaderboard";
+import { TOOL_INTERFACES, TOOL_TOPICS, TOOL_TYPES } from "@/lib/vibeleaderboard";
 
 const UPSTREAM_MCP_URL =
   process.env.VIBELEADERBOARD_MCP_URL ?? "https://www.vibeleaderboard.ai/api/mcp";
@@ -77,13 +77,15 @@ export async function POST(request: NextRequest) {
     const filters = [
       ["tool_type", TOOL_TYPES],
       ["interface", TOOL_INTERFACES],
-      ["primary_domain", TOOL_DOMAINS],
-      ["capability", TOOL_CAPABILITIES],
+      ["topic", TOOL_TOPICS],
     ] as const;
     for (const [key, values] of filters) {
       if (args[key] != null && !isMember(values, args[key])) {
         return Response.json({ error: `${key} must be a canonical taxonomy value.` }, { status: 400 });
       }
+    }
+    if (args.open_source != null && typeof args.open_source !== "boolean") {
+      return Response.json({ error: "open_source must be a boolean." }, { status: 400 });
     }
   }
 
