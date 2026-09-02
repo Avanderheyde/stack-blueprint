@@ -1,8 +1,9 @@
-import type { Caption } from "@remotion/captions";
-import { Audio } from "@remotion/media";
+import type {Caption} from "@remotion/captions";
+import {Audio} from "@remotion/media";
 import {
   AbsoluteFill,
   Easing,
+  Img,
   Sequence,
   interpolate,
   spring,
@@ -17,189 +18,118 @@ const captions = rawCaptions as Caption[];
 const C = {
   ink: "#0b2841",
   blue: "#0d6bff",
-  cyan: "#54d8ff",
-  paper: "#eef7f8",
-  panel: "#f7fbfb",
-  line: "#84aebc",
-  muted: "#547487",
-  yellow: "#ffd74a",
-  coral: "#ff665c",
-  green: "#4fd39a",
-  white: "#ffffff",
+  cyan: "#55d7f3",
+  paper: "#edf6f5",
+  panel: "#f8fbfa",
+  white: "#fffef8",
+  line: "#86aab6",
+  muted: "#587586",
+  green: "#40c790",
+  yellow: "#f7d651",
+  coral: "#ef695d",
+  cream: "#f5efe2",
 };
 
-const titleFont = '"Avenir Next Condensed", "Arial Narrow", sans-serif';
-const mono = '"SFMono-Regular", Menlo, Consolas, monospace';
-
-const clamp = { extrapolateLeft: "clamp" as const, extrapolateRight: "clamp" as const };
+const display = '"Avenir Next Condensed", "DIN Condensed", sans-serif';
+const body = '"Avenir Next", "Helvetica Neue", sans-serif';
+const mono = '"SFMono-Regular", Menlo, monospace';
+const clamp = {extrapolateLeft: "clamp" as const, extrapolateRight: "clamp" as const};
+const S = (seconds: number) => Math.round(seconds * 30);
 
 const BlueprintBackground = () => (
   <AbsoluteFill
     style={{
       backgroundColor: C.paper,
-      backgroundImage: `linear-gradient(rgba(13,107,255,.09) 1px, transparent 1px), linear-gradient(90deg, rgba(13,107,255,.09) 1px, transparent 1px), linear-gradient(rgba(13,107,255,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(13,107,255,.035) 1px, transparent 1px)`,
-      backgroundSize: "80px 80px, 80px 80px, 16px 16px, 16px 16px",
+      backgroundImage:
+        "linear-gradient(rgba(13,107,255,.085) 1px,transparent 1px),linear-gradient(90deg,rgba(13,107,255,.085) 1px,transparent 1px),linear-gradient(rgba(13,107,255,.03) 1px,transparent 1px),linear-gradient(90deg,rgba(13,107,255,.03) 1px,transparent 1px)",
+      backgroundSize: "80px 80px,80px 80px,16px 16px,16px 16px",
     }}
   />
 );
 
 const CornerMarks = () => (
   <>
-    {[[40, 40], [1840, 40], [40, 1000], [1840, 1000]].map(([left, top], index) => (
-      <div key={index} style={{ position: "absolute", left, top, width: 40, height: 40 }}>
-        <div style={{ position: "absolute", left: 0, top: 19, width: 40, height: 2, background: C.blue, opacity: 0.38 }} />
-        <div style={{ position: "absolute", left: 19, top: 0, width: 2, height: 40, background: C.blue, opacity: 0.38 }} />
+    {[[38, 38], [1842, 38], [38, 1002], [1842, 1002]].map(([left, top], index) => (
+      <div key={index} style={{position: "absolute", left, top, width: 40, height: 40}}>
+        <div style={{position: "absolute", left: 0, top: 19, width: 40, height: 2, background: C.blue, opacity: .34}} />
+        <div style={{position: "absolute", left: 19, top: 0, width: 2, height: 40, background: C.blue, opacity: .34}} />
       </div>
     ))}
   </>
 );
 
-const BrandBug = ({ sheet }: { sheet: string }) => (
-  <div style={{ position: "absolute", left: 68, top: 54, display: "flex", alignItems: "center", gap: 18, fontFamily: mono, color: C.ink }}>
-    <div style={{ fontWeight: 800, fontSize: 20, letterSpacing: "0.16em" }}>STACK BLUEPRINT</div>
-    <div style={{ width: 1, height: 20, background: C.line }} />
-    <div style={{ fontSize: 14, letterSpacing: "0.12em", color: C.muted }}>{sheet}</div>
-  </div>
-);
-
-const Scene = ({ children, sheet }: { children: React.ReactNode; sheet: string }) => (
-  <AbsoluteFill style={{ color: C.ink, overflow: "hidden" }}>
+const Scene = ({sheet, children}: {sheet: string; children: React.ReactNode}) => (
+  <AbsoluteFill style={{color: C.ink, overflow: "hidden"}}>
     <BlueprintBackground />
     <CornerMarks />
-    <BrandBug sheet={sheet} />
+    <div style={{position: "absolute", left: 68, top: 54, display: "flex", gap: 18, alignItems: "center", fontFamily: mono}}>
+      <span style={{fontSize: 19, fontWeight: 800, letterSpacing: ".16em"}}>STACK BLUEPRINT</span>
+      <span style={{width: 1, height: 20, background: C.line}} />
+      <span style={{fontSize: 13, letterSpacing: ".12em", color: C.muted}}>{sheet}</span>
+    </div>
     {children}
   </AbsoluteFill>
 );
 
-const DrawLine = ({ x, y, width, delay = 0, vertical = false }: { x: number; y: number; width: number; delay?: number; vertical?: boolean }) => {
-  const frame = useCurrentFrame();
-  const progress = interpolate(frame, [delay, delay + 22], [0, 1], { ...clamp, easing: Easing.out(Easing.cubic) });
-  return <div style={{ position: "absolute", left: x, top: y, width: vertical ? 2 : width * progress, height: vertical ? width * progress : 2, background: C.blue, transformOrigin: "top left" }} />;
-};
+const enter = (frame: number, fps: number, delay = 0) =>
+  spring({frame: frame - delay, fps, durationInFrames: Math.round(.7 * fps), config: {damping: 18, stiffness: 115, mass: .8}});
 
-const LogoNode = ({ name, role, color = C.blue, delay = 0, compact = false }: { name: string; role: string; color?: string; delay?: number; compact?: boolean }) => {
+const TitleScene = () => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const enter = spring({ frame: frame - delay, fps, config: { damping: 18, stiffness: 150, mass: 0.7 }, durationInFrames: 25 });
-  return (
-    <div
-      style={{
-        display: "flex",
-        alignItems: "center",
-        gap: compact ? 12 : 18,
-        border: `2px solid ${C.ink}`,
-        background: C.panel,
-        padding: compact ? "12px 16px" : "18px 22px",
-        minWidth: compact ? 210 : 290,
-        boxShadow: `6px 6px 0 ${C.ink}16`,
-        transform: `translateY(${(1 - enter) * 20}px) scale(${0.94 + enter * 0.06})`,
-        opacity: enter,
-      }}
-    >
-      <div style={{ width: compact ? 40 : 52, height: compact ? 40 : 52, display: "grid", placeItems: "center", color: C.white, background: color, fontFamily: titleFont, fontWeight: 900, fontSize: compact ? 22 : 28 }}>
-        {name.replace(/[^A-Za-z0-9]/g, "").slice(0, 1)}
-      </div>
-      <div>
-        <div style={{ fontFamily: titleFont, fontSize: compact ? 22 : 28, fontWeight: 800, letterSpacing: "0.01em" }}>{name}</div>
-        <div style={{ fontFamily: mono, marginTop: 3, fontSize: compact ? 11 : 13, color: C.muted, letterSpacing: "0.08em", textTransform: "uppercase" }}>{role}</div>
-      </div>
+  const {fps} = useVideoConfig();
+  const title = enter(frame, fps, 2);
+  const rule = interpolate(frame, [8, 27], [0, 1], clamp);
+  return <Scene sheet="SHEET 01 / TITLE">
+    <div style={{position: "absolute", left: 155, right: 155, top: 250, opacity: title, transform: `translateY(${(1 - title) * 24}px)`}}>
+      <div style={{font: `13px ${mono}`, color: C.blue, letterSpacing: ".16em"}}>STACK BLUEPRINT · PROJECT NO. 01</div>
+      <h1 style={{margin: "25px 0 0", font: `800 145px/.94 ${display}`, textTransform: "uppercase", letterSpacing: "-.025em"}}>Equip the agent.<br /><span style={{color: C.blue}}>Then build.</span></h1>
+      <div style={{height: 3, background: C.ink, margin: "42px 0 27px", transform: `scaleX(${rule})`, transformOrigin: "left"}} />
+      <p style={{margin: 0, maxWidth: 1180, font: `30px/1.35 ${body}`, color: C.muted}}>One software idea becomes a product stack and the AI workspace needed to execute it well.</p>
     </div>
-  );
+  </Scene>;
 };
 
-const IntroScene = () => {
-  const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const title = spring({ frame: frame - 8, fps, config: { damping: 16, stiffness: 110 }, durationInFrames: 40 });
-  const line = interpolate(frame, [20, 65], [0, 1], clamp);
-  return (
-    <Scene sheet="SHEET 00 / INTRODUCTION">
-      <div style={{ position: "absolute", left: 170, top: 260, width: 1580 }}>
-        <div style={{ fontFamily: mono, fontSize: 18, letterSpacing: "0.2em", color: C.blue, marginBottom: 26 }}>WEBMCP SOFTWARE ARCHITECT</div>
-        <h1 style={{ margin: 0, fontFamily: titleFont, fontSize: 168, lineHeight: 0.85, letterSpacing: "-0.045em", textTransform: "uppercase", transform: `translateY(${(1 - title) * 50}px)`, opacity: title }}>
-          Stack <span style={{ color: C.blue }}>Blueprint</span>
-        </h1>
-        <div style={{ width: `${line * 100}%`, height: 5, background: C.ink, margin: "42px 0 34px" }} />
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end" }}>
-          <p style={{ margin: 0, maxWidth: 1050, fontFamily: titleFont, fontWeight: 600, fontSize: 42, lineHeight: 1.15 }}>
-            Draw the product stack. Equip the coding agent to execute it well.
-          </p>
-          <div style={{ fontFamily: mono, color: C.muted, textAlign: "right", fontSize: 14, lineHeight: 1.8 }}>PROJECT NO. 01<br />ISSUED FOR DEMO<br />REV 08.30.26</div>
-        </div>
-      </div>
-    </Scene>
-  );
-};
-
-const ProblemScene = () => {
-  const frame = useCurrentFrame();
-  const stamp = spring({ frame: frame - 84, fps: 30, config: { damping: 12, stiffness: 180 }, durationInFrames: 25 });
-  return (
-    <Scene sheet="SHEET 01 / THE GAP">
-      <div style={{ position: "absolute", left: 120, top: 160, width: 1680 }}>
-        <div style={{ fontFamily: mono, fontSize: 18, color: C.muted, letterSpacing: "0.14em" }}>A SENSIBLE PRODUCT STACK</div>
-        <h2 style={{ fontFamily: titleFont, fontSize: 74, margin: "12px 0 44px", textTransform: "uppercase" }}>The easy answer</h2>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 60, position: "relative" }}>
-          <LogoNode name="Expo" role="Mobile framework" color="#111111" delay={12} />
-          <div style={{ fontFamily: mono, fontSize: 40, color: C.line }}>+</div>
-          <LogoNode name="React Native" role="Native UI" color="#149eca" delay={28} />
-          <div style={{ fontFamily: mono, fontSize: 40, color: C.line }}>+</div>
-          <LogoNode name="Supabase" role="Backend platform" color="#2cba7c" delay={44} />
-        </div>
-        <div style={{ marginTop: 72, border: `2px dashed ${C.line}`, height: 190, padding: "28px 38px", display: "flex", justifyContent: "space-between", alignItems: "center", opacity: interpolate(frame, [58, 85], [0, 1], clamp) }}>
-          <div>
-            <div style={{ fontFamily: mono, fontSize: 15, color: C.muted, letterSpacing: "0.14em" }}>EQUIPPED AI WORKSPACE</div>
-            <div style={{ marginTop: 18, fontFamily: titleFont, fontWeight: 700, fontSize: 38 }}>What helps the agent build this professionally?</div>
-          </div>
-          <div style={{ fontFamily: mono, fontSize: 22, color: C.coral, border: `3px solid ${C.coral}`, padding: "18px 28px", transform: `rotate(-4deg) scale(${stamp})`, opacity: stamp }}>MISSING FROM A PLAIN ANSWER</div>
-        </div>
-      </div>
-    </Scene>
-  );
-};
-
-const BrowserShell = ({ children, agentPanel }: { children: React.ReactNode; agentPanel?: React.ReactNode }) => (
-  <div style={{ position: "absolute", left: 90, right: 90, top: 130, bottom: 95, border: `3px solid ${C.ink}`, background: C.panel, boxShadow: `14px 14px 0 ${C.ink}18`, overflow: "hidden" }}>
-    <div style={{ height: 52, borderBottom: `2px solid ${C.ink}`, display: "flex", alignItems: "center", gap: 10, padding: "0 20px", background: C.white }}>
-      {[C.coral, C.yellow, C.green].map((color) => <div key={color} style={{ width: 13, height: 13, borderRadius: 99, background: color }} />)}
-      <div style={{ marginLeft: 18, flex: 1, height: 30, border: `1px solid ${C.line}`, padding: "6px 14px", fontFamily: mono, fontSize: 12, color: C.muted }}>stack-blueprint.vercel.app</div>
-      <div style={{ fontFamily: mono, fontSize: 11, color: C.green, letterSpacing: "0.1em" }}>● AGENT CONNECTED</div>
+const BrowserShell = ({children, agent}: {children: React.ReactNode; agent?: React.ReactNode}) => (
+  <div style={{position: "absolute", left: 82, right: 82, top: 126, bottom: 92, background: C.panel, border: `3px solid ${C.ink}`, boxShadow: "14px 14px 0 rgba(11,40,65,.09)", overflow: "hidden"}}>
+    <div style={{height: 50, borderBottom: `2px solid ${C.ink}`, background: C.white, display: "flex", alignItems: "center", gap: 9, padding: "0 20px"}}>
+      {[C.coral, C.yellow, C.green].map((color) => <span key={color} style={{width: 12, height: 12, borderRadius: 99, background: color}} />)}
+      <div style={{height: 29, flex: 1, marginLeft: 14, border: `1px solid ${C.line}`, padding: "6px 13px", font: `12px ${mono}`, color: C.muted}}>stack-blueprint.vercel.app</div>
+      <span style={{font: `11px ${mono}`, letterSpacing: ".1em", color: C.green}}>● AGENT CONNECTED</span>
     </div>
-    <div style={{ display: "grid", gridTemplateColumns: agentPanel ? "1fr 520px" : "1fr", height: "calc(100% - 52px)" }}>
-      <div style={{ position: "relative", overflow: "hidden" }}>{children}</div>
-      {agentPanel && <div style={{ borderLeft: `2px solid ${C.ink}`, background: "#0d1f30", color: C.white }}>{agentPanel}</div>}
+    <div style={{height: "calc(100% - 50px)", display: "grid", gridTemplateColumns: agent ? "1fr 500px" : "1fr"}}>
+      <div style={{position: "relative", overflow: "hidden"}}>{children}</div>
+      {agent ? <div style={{borderLeft: `2px solid ${C.ink}`, background: "#0d2335", color: C.white}}>{agent}</div> : null}
     </div>
   </div>
 );
 
-const WebMcpScene = () => {
+const PromptScene = () => {
   const frame = useCurrentFrame();
-  const typing = Math.floor(interpolate(frame, [20, 130], [0, 104], clamp));
-  const prompt = "A silly mobile app where roommates photograph the fridge, claim food, and vote on suspicious leftovers";
-  const call = spring({ frame: frame - 150, fps: 30, config: { damping: 16, stiffness: 150 }, durationInFrames: 30 });
+  const {fps} = useVideoConfig();
+  const title = enter(frame, fps, 4);
+  const fullPrompt = "A mobile app where roommates photograph food, claim what is theirs, and vote on suspicious leftovers.";
+  const typed = Math.floor(interpolate(frame, [S(5.5), S(15)], [0, fullPrompt.length], clamp));
+  const firstBeat = frame < S(5.4);
   return (
-    <Scene sheet="SHEET 02 / SHARED PLANNING SURFACE">
-      <BrowserShell agentPanel={
-        <div style={{ padding: 34 }}>
-          <div style={{ fontFamily: mono, fontSize: 13, color: C.cyan, letterSpacing: "0.12em" }}>BROWSER AGENT</div>
-          <div style={{ marginTop: 32, border: "1px solid #3b5b72", background: "#142c40", padding: 22, fontFamily: titleFont, fontSize: 24, lineHeight: 1.35 }}>
-            Build a blueprint for this project and explain the equipped workspace.
+    <Scene sheet="SHEET 01 / PROJECT BRIEF">
+      <BrowserShell>
+        <div style={{padding: "54px 70px"}}>
+          <div style={{font: `13px ${mono}`, color: C.blue, letterSpacing: ".14em"}}>WHAT ARE YOU BUILDING?</div>
+          <h1 style={{margin: "12px 0 28px", fontFamily: display, fontSize: 66, lineHeight: .98, textTransform: "uppercase", transform: `translateY(${(1 - title) * 22}px)`, opacity: title}}>
+            One idea. Two plans.
+          </h1>
+          <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: 18, marginBottom: 28}}>
+            {["PRODUCT SOFTWARE", "EQUIPPED AI WORKSPACE"].map((label, index) => (
+              <div key={label} style={{borderTop: `3px solid ${index ? C.blue : C.ink}`, padding: "14px 0", font: `14px ${mono}`, letterSpacing: ".11em", color: index ? C.blue : C.ink}}>{String(index + 1).padStart(2, "0")} · {label}</div>
+            ))}
           </div>
-          <div style={{ marginTop: 38, transform: `translateY(${(1 - call) * 24}px)`, opacity: call, border: `2px solid ${C.cyan}`, padding: 20 }}>
-            <div style={{ fontFamily: mono, fontSize: 12, color: C.cyan, letterSpacing: "0.12em" }}>WEBMCP TOOL CALL</div>
-            <div style={{ fontFamily: mono, marginTop: 14, color: C.white, fontSize: 16 }}>build_project_blueprint</div>
-            <div style={{ fontFamily: mono, marginTop: 10, color: "#9ab4c6", fontSize: 12 }}>project: &quot;roommate fridge app...&quot;</div>
+          <div style={{height: 190, border: `2px solid ${C.ink}`, background: C.white, padding: "24px 28px", fontFamily: body, fontSize: 31, lineHeight: 1.34, color: firstBeat ? C.muted : C.ink}}>
+            {firstBeat ? "Describe the product in ordinary language…" : fullPrompt.slice(0, typed)}
+            {!firstBeat && typed < fullPrompt.length ? <span style={{color: C.blue}}>|</span> : null}
           </div>
-        </div>
-      }>
-        <div style={{ padding: 48 }}>
-          <div style={{ fontFamily: mono, fontSize: 12, color: C.blue, letterSpacing: "0.12em" }}>WHAT ARE YOU BUILDING?</div>
-          <div style={{ marginTop: 18, minHeight: 170, border: `2px solid ${C.ink}`, background: C.white, padding: 24, fontFamily: titleFont, fontSize: 31, lineHeight: 1.35 }}>
-            {prompt.slice(0, typing)}<span style={{ color: C.blue }}>|</span>
-          </div>
-          <div style={{ marginTop: 26, display: "inline-block", background: C.blue, color: C.white, padding: "17px 30px", fontFamily: mono, fontSize: 15, letterSpacing: "0.12em" }}>BUILD MY STACK</div>
-          <div style={{ marginTop: 52, borderTop: `2px solid ${C.line}`, paddingTop: 28, fontFamily: titleFont, fontSize: 28, color: C.muted }}>
-            One description becomes visible shared state for the person and the agent.
+          <div style={{marginTop: 22, display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+            <div style={{background: C.blue, color: C.white, padding: "15px 28px", font: `13px ${mono}`, letterSpacing: ".12em"}}>BUILD MY BLUEPRINT</div>
+            <div style={{font: `13px ${mono}`, color: C.muted}}>NO QUESTIONNAIRE · ONE SHARED BRIEF</div>
           </div>
         </div>
       </BrowserShell>
@@ -207,31 +137,82 @@ const WebMcpScene = () => {
   );
 };
 
-const BuildScene = () => {
+const LogoNode = ({name, role, color, delay = 0, small = false}: {name: string; role: string; color: string; delay?: number; small?: boolean}) => {
+  const frame = useCurrentFrame();
+  const {fps} = useVideoConfig();
+  const p = enter(frame, fps, delay);
+  return (
+    <div style={{display: "flex", alignItems: "center", gap: small ? 11 : 17, padding: small ? "11px 14px" : "18px 20px", border: `2px solid ${C.ink}`, background: C.panel, minWidth: small ? 205 : 280, transform: `translateY(${(1 - p) * 20}px)`, opacity: p}}>
+      <div style={{width: small ? 38 : 52, height: small ? 38 : 52, background: color, color: C.white, display: "grid", placeItems: "center", font: `800 ${small ? 21 : 28}px ${display}`}}>{name[0]}</div>
+      <div><div style={{font: `700 ${small ? 20 : 27}px ${display}`}}>{name}</div><div style={{font: `${small ? 9 : 11}px ${mono}`, color: C.muted, letterSpacing: ".09em", textTransform: "uppercase"}}>{role}</div></div>
+    </div>
+  );
+};
+
+const StackOnlyScene = () => {
+  const frame = useCurrentFrame();
+  const stamp = enter(frame, 30, 100);
+  return (
+    <Scene sheet="SHEET 02 / SOFTWARE STACK">
+      <div style={{position: "absolute", left: 120, right: 120, top: 155}}>
+        <div style={{font: `14px ${mono}`, color: C.muted, letterSpacing: ".14em"}}>A NORMAL AGENT ANSWER</div>
+        <h2 style={{font: `800 76px ${display}`, textTransform: "uppercase", margin: "8px 0 54px"}}>Reasonable ingredients</h2>
+        <div style={{display: "flex", justifyContent: "center", alignItems: "center", gap: 44}}>
+          <LogoNode name="Expo" role="mobile framework" color="#17202b" delay={10} />
+          <span style={{font: `40px ${mono}`, color: C.line}}>+</span>
+          <LogoNode name="React Native" role="native UI" color="#159fca" delay={24} />
+          <span style={{font: `40px ${mono}`, color: C.line}}>+</span>
+          <LogoNode name="Supabase" role="backend platform" color="#31b779" delay={38} />
+        </div>
+        <div style={{height: 205, marginTop: 60, border: `2px dashed ${C.line}`, padding: "30px 40px", display: "flex", justifyContent: "space-between", alignItems: "center"}}>
+          <div><div style={{font: `13px ${mono}`, color: C.muted, letterSpacing: ".13em"}}>STILL UNANSWERED</div><div style={{marginTop: 14, font: `700 38px ${display}`}}>How should the agent use this stack well?</div></div>
+          <div style={{border: `3px solid ${C.coral}`, color: C.coral, padding: "17px 24px", font: `700 18px ${mono}`, transform: `rotate(-3deg) scale(${stamp})`, opacity: stamp}}>WORKSPACE MISSING</div>
+        </div>
+      </div>
+    </Scene>
+  );
+};
+
+const WebMcpScene = () => {
+  const frame = useCurrentFrame();
+  const {fps} = useVideoConfig();
+  const switched = frame >= S(5.5);
+  const call = enter(frame, fps, S(5.6));
+  const pan = interpolate(frame, [S(6.2), S(11.3)], [0, -1040], clamp);
+  return (
+    <Scene sheet="SHEET 03 / LIVE WEBMCP HANDOFF">
+      <div style={{position: "absolute", left: 82, right: 82, top: 126, bottom: 88, border: `3px solid ${C.ink}`, background: C.white, overflow: "hidden", boxShadow: "14px 14px 0 rgba(11,40,65,.09)"}}>
+        <Img src={staticFile(switched ? "live-webmcp-build-full.png" : "live-webmcp-before.png")} style={{width: "100%", height: switched ? "auto" : "100%", objectFit: switched ? undefined : "cover", objectPosition: "top", transform: switched ? `translateY(${pan}px)` : "none"}} />
+        <div style={{position: "absolute", left: 18, top: 18, padding: "10px 14px", background: C.green, color: C.white, font: `11px ${mono}`, letterSpacing: ".11em"}}>LIVE CAPTURE · CODEX IN-APP BROWSER</div>
+        <div style={{position: "absolute", right: 22, top: 22, width: 480, border: `2px solid ${C.cyan}`, background: "rgba(13,35,53,.97)", color: C.white, padding: 20, opacity: call, transform: `translateY(${(1 - call) * 18}px)`}}>
+          <div style={{font: `10px ${mono}`, color: C.cyan, letterSpacing: ".12em"}}>DISCOVERED PAGE TOOL · CALLED LIVE</div>
+          <div style={{marginTop: 10, font: `16px ${mono}`}}>build_project_blueprint</div>
+          <div style={{marginTop: 10, color: "#b6cbd7", font: `11px/1.5 ${mono}`}}>RESULT · REV 01 · 26 PICKS<br />CATALOG MATCHES VERIFIED ON THE DRAWING</div>
+        </div>
+      </div>
+    </Scene>
+  );
+};
+
+const ResearchScene = () => {
   const frame = useCurrentFrame();
   const steps = [
-    ["INFER", "Mobile · Prototype · Speed"],
-    ["DISCOVER", "Tool taxonomy V2.4"],
-    ["CONSULT", "Maintained tools + Engineering Intel"],
-    ["DRAW", "Shared blueprint state"],
+    ["UNDERSTAND", "Mobile · photos · accounts"],
+    ["CHECK", "VibeLeaderboard tools + Intel"],
+    ["FILTER", "Maintained tools + relevant Intel"],
+    ["DRAW", "One shared blueprint"],
   ];
   return (
-    <Scene sheet="SHEET 03 / AUTOMATIC CONSULTATION">
-      <div style={{ position: "absolute", left: 130, top: 150, right: 130 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "end" }}>
-          <div><div style={{ fontFamily: mono, color: C.blue, letterSpacing: "0.14em" }}>BUILD_PROJECT_BLUEPRINT</div><h2 style={{ fontFamily: titleFont, fontSize: 66, margin: "10px 0 0", textTransform: "uppercase" }}>The blueprint draws itself</h2></div>
-          <div style={{ fontFamily: mono, color: C.green, fontSize: 15 }}>● LIVE CONSULTATION</div>
-        </div>
-        <div style={{ marginTop: 70, position: "relative", height: 480 }}>
-          <DrawLine x={110} y={235} width={1410} delay={20} />
+    <Scene sheet="SHEET 04 / LIVE CONSULTATION">
+      <div style={{position: "absolute", left: 120, right: 120, top: 155}}>
+        <div style={{display: "flex", justifyContent: "space-between", alignItems: "end"}}><div><div style={{font: `13px ${mono}`, color: C.blue, letterSpacing: ".13em"}}>AUTOMATIC CONSULTATION</div><h2 style={{font: `800 68px ${display}`, textTransform: "uppercase", margin: "8px 0"}}>The blueprint draws itself</h2></div><div style={{font: `13px ${mono}`, color: C.green}}>● CURRENT CATALOG CONNECTED</div></div>
+        <div style={{position: "relative", marginTop: 75, display: "grid", gridTemplateColumns: "repeat(4,1fr)", gap: 28}}>
+          <div style={{position: "absolute", left: 100, right: 100, top: 45, height: 3, background: C.line}} />
           {steps.map(([label, value], index) => {
-            const enter = spring({ frame: frame - 20 - index * 34, fps: 30, config: { damping: 16, stiffness: 150 }, durationInFrames: 25 });
-            return <div key={label} style={{ position: "absolute", left: 30 + index * 410, top: 120, width: 320, transform: `translateY(${(1 - enter) * 30}px)`, opacity: enter }}>
-              <div style={{ width: 72, height: 72, borderRadius: 100, background: index === 3 ? C.blue : C.white, border: `3px solid ${C.blue}`, color: index === 3 ? C.white : C.blue, display: "grid", placeItems: "center", fontFamily: mono, fontSize: 22, fontWeight: 800, margin: "0 auto" }}>{String(index + 1).padStart(2, "0")}</div>
-              <div style={{ marginTop: 34, border: `2px solid ${C.ink}`, background: C.panel, minHeight: 145, padding: 22, textAlign: "center" }}>
-                <div style={{ fontFamily: mono, fontSize: 13, color: C.blue, letterSpacing: "0.12em" }}>{label}</div>
-                <div style={{ fontFamily: titleFont, fontSize: 25, fontWeight: 700, lineHeight: 1.2, marginTop: 14 }}>{value}</div>
-              </div>
+            const p = enter(frame, 30, index * 28);
+            return <div key={label} style={{position: "relative", opacity: p, transform: `translateY(${(1 - p) * 22}px)`}}>
+              <div style={{width: 90, height: 90, margin: "0 auto", borderRadius: 99, border: `3px solid ${C.blue}`, background: index === 3 ? C.blue : C.white, color: index === 3 ? C.white : C.blue, display: "grid", placeItems: "center", font: `700 21px ${mono}`}}>{String(index + 1).padStart(2, "0")}</div>
+              <div style={{marginTop: 28, minHeight: 160, border: `2px solid ${C.ink}`, background: C.panel, padding: "22px 18px", textAlign: "center"}}><div style={{font: `12px ${mono}`, color: C.blue, letterSpacing: ".11em"}}>{label}</div><div style={{marginTop: 14, font: `700 24px/1.18 ${display}`}}>{value}</div></div>
             </div>;
           })}
         </div>
@@ -241,57 +222,90 @@ const BuildScene = () => {
 };
 
 const WorkspaceScene = () => {
-  const groups = [
-    { label: "HARNESS + MODEL", items: [["Codex", "Agent harness", "#111827"], ["GPT-5.6 Sol", "Builder model", "#6941c6"]] },
-    { label: "CONNECTED MCPS", items: [["Expo MCP", "Live Expo context", "#111111"], ["Supabase MCP", "Scoped backend access", "#2cba7c"]] },
-    { label: "DIAGNOSTICS + QA", items: [["React Doctor", "React diagnostics", "#149eca"], ["Expo Doctor", "Dependency checks", "#111111"], ["agent-device", "Simulator proof", "#ff665c"]] },
-    { label: "PROJECT SKILLS", items: [["Expo Skills", "Project · Design · Router", "#0d6bff"], ["Callstack Skills", "React Native production", "#f5a623"], ["NativeWind", "Exact styling setup", "#38bdf8"]] },
+  const frame = useCurrentFrame();
+  const {fps} = useVideoConfig();
+  const matches = [
+    {stack: "EXPO", role: "MOBILE FRAMEWORK", color: "#17202b", start: 3.2, tools: ["Expo MCP", "Expo Doctor", "agent-device", "Expo project + UI skills"]},
+    {stack: "REACT NATIVE", role: "NATIVE UI", color: "#159fca", start: 14.2, tools: ["Callstack skills", "React Doctor"]},
+    {stack: "NATIVEWIND", role: "STYLING", color: "#28a9d6", start: 18.4, tools: ["Expo Tailwind setup skill"]},
+    {stack: "SUPABASE", role: "BACKEND PLATFORM", color: "#31b779", start: 21.3, tools: ["Supabase MCP", "Database skill", "Postgres best practices"]},
   ];
+  const proof = enter(frame, fps, S(27));
   return (
-    <Scene sheet="SHEET A / EQUIPPED AI WORKSPACE">
-      <div style={{ position: "absolute", left: 90, right: 90, top: 125 }}>
-        <div style={{ display: "flex", alignItems: "end", justifyContent: "space-between", borderBottom: `3px solid ${C.ink}`, paddingBottom: 18 }}>
-          <div><div style={{ fontFamily: mono, color: C.blue, letterSpacing: "0.14em" }}>THE HIGH-LEVERAGE LAYER</div><h2 style={{ fontFamily: titleFont, fontSize: 64, margin: "8px 0 0", textTransform: "uppercase" }}>Equipped AI workspace</h2></div>
-          <div style={{ fontFamily: mono, color: C.muted, fontSize: 13, textAlign: "right" }}>MATCHED TO<br />EXPO + SUPABASE</div>
+    <Scene sheet="SHEET 05 / MATCHED AI WORKSPACE">
+      <div style={{position: "absolute", left: 84, right: 84, top: 128}}>
+        <div style={{display: "flex", justifyContent: "space-between", alignItems: "end", borderBottom: `3px solid ${C.ink}`, paddingBottom: 13}}><div><div style={{font: `12px ${mono}`, color: C.blue, letterSpacing: ".13em"}}>THE SOFTWARE STACK DETERMINES THE AI WORKSPACE</div><h2 style={{font: `800 55px ${display}`, textTransform: "uppercase", margin: "5px 0 0"}}>Each pick unlocks its tools</h2></div><div style={{font: `11px/1.6 ${mono}`, color: C.muted, textAlign: "right"}}>MCPs · SKILLS · CLIs<br />DIAGNOSTICS · TESTING</div></div>
+        <div style={{display: "grid", gap: 11, marginTop: 18}}>
+          {matches.map((match, index) => {
+            const p = enter(frame, fps, S(match.start));
+            const nextStart = matches[index + 1]?.start ?? 27;
+            const active = frame / fps >= match.start && frame / fps < nextStart;
+            return <div key={match.stack} style={{display: "grid", gridTemplateColumns: "290px 46px 1fr", alignItems: "center", minHeight: 116, border: `2px solid ${active ? C.blue : C.ink}`, background: active ? "#e5efff" : "rgba(248,251,250,.93)", opacity: p, transform: `translateX(${(1 - p) * -24}px)`}}>
+              <div style={{height: "100%", padding: "17px 20px", display: "flex", alignItems: "center", gap: 15, borderRight: `2px solid ${active ? C.blue : C.ink}`}}><div style={{width: 50, height: 50, background: match.color, color: C.white, display: "grid", placeItems: "center", font: `800 25px ${display}`}}>{match.stack[0]}</div><div><div style={{font: `800 25px ${display}`}}>{match.stack}</div><div style={{font: `9px ${mono}`, color: C.muted, letterSpacing: ".1em"}}>{match.role}</div></div></div>
+              <div style={{font: `800 27px ${mono}`, color: active ? C.blue : C.line, textAlign: "center"}}>→</div>
+              <div style={{display: "flex", flexWrap: "wrap", gap: 9, padding: "16px 18px"}}>{match.tools.map((tool) => <span key={tool} style={{padding: "10px 13px", border: `1px solid ${active ? C.blue : C.line}`, background: C.white, color: active ? C.blue : C.ink, font: `12px ${mono}`}}>{tool}</span>)}</div>
+            </div>;
+          })}
         </div>
-        <div style={{ marginTop: 34, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 24 }}>
-          {groups.map((group, groupIndex) => <div key={group.label} style={{ border: `2px solid ${C.ink}`, background: "rgba(247,251,251,.88)", padding: 22, minHeight: 300 }}>
-            <div style={{ fontFamily: mono, fontSize: 13, color: C.muted, letterSpacing: "0.14em", marginBottom: 18 }}>{group.label}</div>
-            <div style={{ display: "flex", flexWrap: "wrap", gap: 14 }}>
-              {group.items.map(([name, role, color], index) => <LogoNode key={name} name={name} role={role} color={color} compact delay={groupIndex * 24 + index * 11} />)}
-            </div>
-          </div>)}
-        </div>
+        <div style={{marginTop: 14, display: "flex", justifyContent: "center", gap: 12, opacity: proof, transform: `translateY(${(1 - proof) * 18}px)`}}>{["CURRENT DOCUMENTATION", "STACK-SPECIFIC PATTERNS", "DIAGNOSTICS", "RUNNING-APP PROOF"].map((item, index) => <span key={item} style={{padding: "10px 14px", background: index === 3 ? C.green : C.ink, color: C.white, font: `10px ${mono}`, letterSpacing: ".06em"}}>{item}</span>)}</div>
       </div>
     </Scene>
   );
 };
 
-const InspectScene = () => {
+const CapabilitiesScene = () => {
   const frame = useCurrentFrame();
-  const modal = spring({ frame: frame - 32, fps: 30, config: { damping: 17, stiffness: 140 }, durationInFrames: 30 });
+  const capabilities = [
+    ["CURRENT DOCUMENTATION", "Expo MCP · Supabase MCP"],
+    ["PROJECT CONTEXT", "Project skills · Vibe Intel"],
+    ["STACK-SPECIFIC PATTERNS", "Expo · Callstack · Postgres"],
+    ["DIAGNOSTICS", "React Doctor · Expo Doctor"],
+    ["RUNNING-APP PROOF", "agent-device · simulator"],
+  ];
+  return <Scene sheet="SHEET 05B / WHAT THE AGENT GAINS">
+    <div style={{position: "absolute", left: 115, right: 115, top: 145}}>
+      <div style={{font: `12px ${mono}`, color: C.blue, letterSpacing: ".13em"}}>THE EQUIPPED WORKSPACE, IN PLAIN LANGUAGE</div>
+      <h2 style={{font: `800 68px ${display}`, textTransform: "uppercase", margin: "8px 0 48px"}}>What these tools give the coding agent</h2>
+      <div style={{display: "grid", gridTemplateColumns: "repeat(5,1fr)", gap: 15}}>{capabilities.map(([label, tools], index) => { const p = enter(frame, 30, index * 10); return <div key={label} style={{minHeight: 410, border: `2px solid ${C.ink}`, background: C.panel, padding: "25px 21px", opacity: p, transform: `translateY(${(1 - p) * 22}px)`, display: "grid", alignContent: "space-between"}}><div><div style={{width: 46, height: 46, display: "grid", placeItems: "center", background: index === 4 ? C.green : C.blue, color: C.white, font: `15px ${mono}`}}>{String(index + 1).padStart(2, "0")}</div><div style={{marginTop: 25, font: `800 31px/1.05 ${display}`}}>{label}</div></div><div style={{paddingTop: 13, borderTop: `1px solid ${C.line}`, font: `10px/1.65 ${mono}`, color: C.muted, letterSpacing: ".06em"}}>{tools}</div></div>;})}</div>
+      <div style={{marginTop: 26, display: "flex", justifyContent: "space-between", borderTop: `2px solid ${C.ink}`, paddingTop: 16, font: `10px ${mono}`, letterSpacing: ".1em"}}><span>MOBILE · PROTOTYPE · 2 PRODUCTION TOOLS DEFERRED</span><span style={{color: C.green}}>BLUEPRINT READY · CLICK ANY LOGO TO SEE WHY</span></div>
+    </div>
+  </Scene>;
+};
+
+const Phone = ({equipped}: {equipped: boolean}) => (
+  <div style={{width: 345, height: 650, borderRadius: 46, border: equipped ? "8px solid #162a25" : "8px solid #24233b", background: equipped ? "#f4f0e5" : "linear-gradient(145deg,#faf5ff,#edf2ff)", overflow: "hidden", boxShadow: "0 22px 45px rgba(16,36,52,.18)", fontFamily: body}}>
+    <div style={{height: 34, display: "flex", justifyContent: "space-between", alignItems: "center", padding: "0 20px", fontSize: 10, color: equipped ? "#203b34" : "#56516d"}}><span>9:41</span><span>● ● ●</span></div>
+    {equipped ? <>
+      <div style={{padding: "10px 20px 14px", borderBottom: "1px solid #c8c1af", display: "flex", justifyContent: "space-between", alignItems: "end"}}><div><div style={{font: `11px ${mono}`, color: "#5d786d"}}>APT 4B · SHARED FRIDGE</div><div style={{font: `800 30px ${display}`, color: "#162a25"}}>Shelf Check</div></div><div style={{width: 42, height: 42, borderRadius: 99, background: "#ef6b4f", color: C.white, display: "grid", placeItems: "center", fontSize: 22}}>＋</div></div>
+      <div style={{padding: "15px 18px"}}>
+        <div style={{display: "flex", gap: 7, marginBottom: 14}}>{["ALL 12", "MINE 3", "UNCLAIMED 2"].map((x, i) => <span key={x} style={{padding: "7px 10px", background: i === 0 ? "#203b34" : "transparent", color: i === 0 ? "#f8f4e8" : "#536f65", border: "1px solid #8ba297", borderRadius: 99, font: `9px ${mono}`}}>{x}</span>)}</div>
+        <div style={{background: "#e1e8d7", border: "1px solid #99ad91", padding: 12}}><div style={{height: 122, background: "#b9c7a9", display: "grid", placeItems: "center", fontSize: 48}}>🥡</div><div style={{display: "flex", justifyContent: "space-between", alignItems: "center", marginTop: 11}}><div><b style={{fontSize: 16, color: "#203b34"}}>Thai leftovers</b><div style={{fontSize: 11, color: "#5d786d", marginTop: 3}}>Claimed by Maya · yesterday</div></div><span style={{background: "#f4c451", color: "#4b3b13", padding: "5px 7px", font: `8px ${mono}`}}>CHECK TODAY</span></div></div>
+        <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 10}}>{[["🥛","Oat milk","Jon"],["🫐","Blueberries","Unclaimed"]].map(([emoji,title,owner]) => <div key={title} style={{border: "1px solid #b8b09d", background: "#faf7ee", padding: 9}}><div style={{height: 72, background: "#ebe4d4", display: "grid", placeItems: "center", fontSize: 30}}>{emoji}</div><b style={{display: "block", marginTop: 7, fontSize: 13, color: "#203b34"}}>{title}</b><span style={{fontSize: 9, color: "#6b7f76"}}>{owner}</span></div>)}</div>
+        <div style={{marginTop: 13, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8}}><button style={{border: "1px solid #203b34", background: "transparent", color: "#203b34", padding: 10, fontWeight: 700}}>Flag leftover</button><button style={{border: 0, background: "#203b34", color: "#f8f4e8", padding: 10, fontWeight: 700}}>Add a photo</button></div>
+      </div>
+      <div style={{height: 45, borderTop: "1px solid #c8c1af", display: "flex", justifyContent: "space-around", alignItems: "center", fontSize: 11, color: "#48645a"}}><b>Fridge</b><span>Votes</span><span>Roommates</span></div>
+    </> : <>
+      <div style={{padding: "19px 20px", textAlign: "center"}}><span style={{display: "inline-block", padding: "6px 12px", borderRadius: 99, background: "#ede5ff", color: "#7a45cc", fontSize: 10}}>✨ AI-POWERED FOOD SHARING</span><div style={{fontSize: 31, fontWeight: 800, marginTop: 13, background: "linear-gradient(90deg,#7b4dff,#3f8cff)", WebkitBackgroundClip: "text", color: "transparent"}}>Smart Fridge Hub</div><p style={{fontSize: 12, color: "#716d84", lineHeight: 1.45}}>Organize. Share. Connect. Make roommate life effortless.</p></div>
+      <div style={{padding: "0 17px", display: "grid", gap: 12}}>{[["📸","Snap & Share","Upload food instantly"],["🤝","Claim Items","Stay organized together"],["⚡","Smart Voting","Decide with AI"]].map(([emoji,title,desc], i) => <div key={title} style={{borderRadius: 22, padding: 15, background: C.white, boxShadow: "0 8px 22px rgba(89,75,140,.10)", display: "flex", gap: 13, alignItems: "center", border: `1px solid ${i === 1 ? "#dac8ff" : "#e4e1eb"}`}}><div style={{width: 48, height: 48, borderRadius: 16, display: "grid", placeItems: "center", background: i === 0 ? "#e9e2ff" : i === 1 ? "#e1f2ff" : "#fff0d9", fontSize: 24}}>{emoji}</div><div><b style={{fontSize: 15, color: "#343149"}}>{title}</b><div style={{fontSize: 10, color: "#8a8699", marginTop: 4}}>{desc}</div></div></div>)}</div>
+      <button style={{display: "block", width: "calc(100% - 34px)", margin: "20px 17px", border: 0, borderRadius: 16, padding: 14, color: "white", fontWeight: 800, background: "linear-gradient(90deg,#7b4dff,#438cf7)", boxShadow: "0 10px 24px rgba(83,91,227,.25)"}}>Get Started ✨</button>
+      <div style={{textAlign: "center", color: "#9b97aa", fontSize: 9}}>Powered by AI · Secure · Seamless</div>
+    </>}
+  </div>
+);
+
+const ComparisonScene = () => {
+  const frame = useCurrentFrame();
+  const tools = interpolate(frame, [S(10), S(15)], [0, 1], clamp);
   return (
-    <Scene sheet="SHEET 04 / EXPLAINABLE PICKS">
-      <BrowserShell>
-        <div style={{ padding: 45, display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: 18, opacity: 0.38 }}>
-          <LogoNode name="Expo MCP" role="Connected MCP" color="#111111" delay={0} />
-          <LogoNode name="React Doctor" role="Diagnostic" color="#149eca" delay={4} />
-          <LogoNode name="Supabase MCP" role="Connected MCP" color="#2cba7c" delay={8} />
+    <Scene sheet="SHEET 06 / ILLUSTRATIVE BUILD COMPARISON">
+      <div style={{position: "absolute", left: 80, right: 80, top: 124}}>
+        <div style={{display: "grid", gridTemplateColumns: "1fr 240px 1fr", gap: 24, alignItems: "start"}}>
+          <div style={{textAlign: "center"}}><div style={{font: `12px ${mono}`, color: C.coral, letterSpacing: ".12em"}}>PLAIN AGENT · STACK ONLY</div><div style={{font: `700 28px ${display}`, margin: "7px 0 14px"}}>Generic output</div><div style={{display: "grid", placeItems: "center"}}><Phone equipped={false} /></div></div>
+          <div style={{paddingTop: 180, textAlign: "center"}}><div style={{font: `11px ${mono}`, color: C.muted}}>SAME IDEA<br />SAME AGENT</div><div style={{font: `800 64px ${display}`, color: C.blue, margin: "18px 0"}}>→</div><div style={{display: "grid", gap: 8, opacity: tools, transform: `translateX(${(1 - tools) * -24}px)`}}>{["EXPO UI SKILLS", "CALLSTACK RN", "REACT DOCTOR", "SIMULATOR PROOF"].map((x, i) => <span key={x} style={{padding: "8px 7px", background: i < 2 ? "#e1eeff" : "#dff4e9", border: `1px solid ${i < 2 ? "#8db8f0" : "#8dc6a9"}`, font: `9px ${mono}`}}>{x}</span>)}</div></div>
+          <div style={{textAlign: "center"}}><div style={{font: `12px ${mono}`, color: C.green, letterSpacing: ".12em"}}>EQUIPPED AGENT · STACK BLUEPRINT</div><div style={{font: `700 28px ${display}`, margin: "7px 0 14px"}}>Product-specific output</div><div style={{display: "grid", placeItems: "center"}}><Phone equipped /></div></div>
         </div>
-        <div style={{ position: "absolute", inset: 0, background: "rgba(7,28,45,.5)" }} />
-        <div style={{ position: "absolute", left: 330, right: 330, top: 80, background: C.paper, border: `3px solid ${C.ink}`, boxShadow: `14px 14px 0 ${C.ink}33`, padding: 42, transform: `translateY(${(1 - modal) * 40}px) scale(${0.96 + 0.04 * modal})`, opacity: modal }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 22, borderBottom: `2px solid ${C.line}`, paddingBottom: 24 }}>
-            <div style={{ width: 70, height: 70, background: "#111", color: C.white, display: "grid", placeItems: "center", fontFamily: titleFont, fontSize: 36, fontWeight: 900 }}>E</div>
-            <div><div style={{ fontFamily: mono, color: C.blue, fontSize: 13, letterSpacing: "0.13em" }}>AGENT MCP</div><div style={{ fontFamily: titleFont, fontSize: 46, fontWeight: 800 }}>Expo MCP</div></div>
-          </div>
-          <div style={{ marginTop: 28, fontFamily: titleFont, fontSize: 27, lineHeight: 1.35 }}>Live Expo, EAS, simulator, and React Native context.</div>
-          <div style={{ marginTop: 28, borderLeft: `5px solid ${C.blue}`, paddingLeft: 24 }}>
-            <div style={{ fontFamily: mono, color: C.muted, fontSize: 12, letterSpacing: "0.12em" }}>WHY THIS PICK</div>
-            <p style={{ fontFamily: titleFont, fontSize: 23, lineHeight: 1.4, margin: "12px 0 0" }}>Search current Expo docs, install SDK-compatible packages, inspect EAS builds, and capture simulator screenshots instead of guessing from stale model memory.</p>
-          </div>
-          <div style={{ marginTop: 30, display: "flex", justifyContent: "space-between", fontFamily: mono, fontSize: 13 }}><span style={{ color: C.green }}>✓ OFFICIAL SOURCE</span><span style={{ color: C.blue }}>docs.expo.dev/mcp ↗</span></div>
-        </div>
-      </BrowserShell>
+        <div style={{position: "absolute", left: 0, bottom: -52, font: `10px ${mono}`, color: C.muted}}>ILLUSTRATIVE COMPARISON · SAME FEATURE BRIEF</div>
+      </div>
     </Scene>
   );
 };
@@ -299,51 +313,100 @@ const InspectScene = () => {
 const IntelScene = () => {
   const frame = useCurrentFrame();
   const items = [
-    ["01", "Define acceptance criteria before implementation.", "Harness Engineering Guide"],
-    ["02", "Use a fresh evaluator instead of letting the builder grade itself.", "Coding agent evaluation research"],
-    ["03", "Keep repository context explicit and require user-visible proof.", "Current agentic engineering Intel"],
+    ["01", "Define success before coding.", "Harness engineering"],
+    ["02", "Keep project context clear.", "Agent workflow guidance"],
+    ["03", "Use an independent review pass.", "Evaluation practice"],
+    ["04", "Require proof from the running app.", "Verification guidance"],
   ];
   return (
-    <Scene sheet="SHEET 05 / VIBE INTEL">
-      <div style={{ position: "absolute", left: 145, top: 155, right: 145 }}>
-        <div style={{ fontFamily: mono, color: C.blue, letterSpacing: "0.14em" }}>PROJECT-SPECIFIC EXECUTION PLAYBOOK</div>
-        <h2 style={{ fontFamily: titleFont, fontSize: 68, margin: "10px 0 20px", textTransform: "uppercase" }}>Evidence becomes instructions</h2>
-        <p style={{ fontFamily: titleFont, fontSize: 27, color: C.muted, margin: 0, maxWidth: 1200 }}>The page discards unrelated news and rewrites retained engineering evidence as actions the coding agent can perform.</p>
-        <div style={{ marginTop: 50, display: "grid", gap: 18 }}>
-          {items.map(([number, instruction, source], index) => {
-            const enter = spring({ frame: frame - 18 - index * 28, fps: 30, config: { damping: 17, stiffness: 150 }, durationInFrames: 28 });
-            return <div key={number} style={{ display: "grid", gridTemplateColumns: "105px 1fr 360px", alignItems: "center", border: `2px solid ${C.ink}`, background: C.panel, minHeight: 145, opacity: enter, transform: `translateX(${(1 - enter) * 36}px)` }}>
-              <div style={{ alignSelf: "stretch", display: "grid", placeItems: "center", background: index === 0 ? C.blue : C.ink, color: C.white, fontFamily: mono, fontSize: 23 }}>{number}</div>
-              <div style={{ padding: "24px 30px", fontFamily: titleFont, fontSize: 30, fontWeight: 700 }}>{instruction}</div>
-              <div style={{ alignSelf: "stretch", borderLeft: `1px solid ${C.line}`, padding: "30px 26px", fontFamily: mono, fontSize: 12, color: C.muted, lineHeight: 1.6 }}><span style={{ color: C.green }}>CITED</span><br />{source}</div>
-            </div>;
-          })}
+    <Scene sheet="SHEET 09 / PROJECT-SPECIFIC INTEL">
+      <div style={{position: "absolute", left: 130, right: 130, top: 142}}>
+        <div style={{font: `12px ${mono}`, color: C.blue, letterSpacing: ".13em"}}>CURRENT ADVICE, FILTERED FOR THIS BUILD</div><h2 style={{font: `800 68px ${display}`, textTransform: "uppercase", margin: "9px 0 14px"}}>Intel becomes instructions</h2><p style={{margin: 0, font: `25px/1.35 ${body}`, color: C.muted}}>Unrelated material drops away. The retained evidence becomes actions the agent can follow.</p>
+        <div style={{marginTop: 38, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 16}}>{items.map(([num, instruction, source], i) => {const p = enter(frame, 30, i * 20); return <div key={num} style={{display: "grid", gridTemplateColumns: "74px 1fr", minHeight: 142, border: `2px solid ${C.ink}`, background: C.panel, opacity: p, transform: `translateY(${(1 - p) * 18}px)`}}><div style={{background: i === 0 ? C.blue : C.ink, color: C.white, display: "grid", placeItems: "center", font: `18px ${mono}`}}>{num}</div><div style={{padding: 20}}><div style={{font: `700 27px ${display}`}}>{instruction}</div><div style={{marginTop: 12, font: `10px ${mono}`, color: C.green}}>CITED · {source.toUpperCase()}</div></div></div>;})}</div>
+      </div>
+    </Scene>
+  );
+};
+
+const InspectScene = () => {
+  const frame = useCurrentFrame();
+  const card = enter(frame, 30, 12);
+  return (
+    <Scene sheet="SHEET 06 / LIVE INSPECTION">
+      <div style={{position: "absolute", left: 82, right: 82, top: 126, bottom: 88, border: `3px solid ${C.ink}`, background: C.white, overflow: "hidden", boxShadow: "14px 14px 0 rgba(11,40,65,.09)", opacity: card, transform: `translateY(${(1 - card) * 18}px)`}}>
+        <Img src={staticFile("live-webmcp-inspect.png")} style={{width: "100%", height: "100%", objectFit: "cover"}} />
+        <div style={{position: "absolute", left: 18, top: 18, padding: "10px 14px", background: C.green, color: C.white, font: `11px ${mono}`, letterSpacing: ".11em"}}>LIVE WEBMCP RESULT · SHARED PAGE STATE</div>
+        <div style={{position: "absolute", right: 20, bottom: 20, padding: "15px 18px", background: "rgba(13,35,53,.96)", color: C.white, border: `2px solid ${C.cyan}`, font: `12px/1.55 ${mono}`}}>inspect_project_blueprint<br /><span style={{color: C.cyan}}>pickName: Expo</span></div>
+      </div>
+    </Scene>
+  );
+};
+
+const ConstraintScene = () => {
+  const frame = useCurrentFrame();
+  const call = enter(frame, 30, 12);
+  const switched = frame >= S(6.6);
+  const pan = interpolate(frame, [S(7), S(13.4)], [0, -920], clamp);
+  return (
+    <Scene sheet="SHEET 07 / LIVE CONSTRAINT">
+      <div style={{position: "absolute", left: 82, right: 82, top: 126, bottom: 88, border: `3px solid ${C.ink}`, background: C.white, overflow: "hidden", boxShadow: "14px 14px 0 rgba(11,40,65,.09)"}}>
+        <Img src={staticFile(switched ? "live-webmcp-revision-full.png" : "live-webmcp-build-full.png")} style={{width: "100%", height: "auto", objectPosition: "top", transform: switched ? `translateY(${pan}px)` : "translateY(-120px)"}} />
+        <div style={{position: "absolute", left: 18, top: 18, padding: "10px 14px", background: C.green, color: C.white, font: `11px ${mono}`, letterSpacing: ".11em"}}>LIVE CAPTURE · REV {switched ? "02" : "01"}</div>
+        <div style={{position: "absolute", right: 22, top: 22, width: 560, border: `2px solid ${C.cyan}`, background: "rgba(13,35,53,.97)", color: C.white, padding: 20, opacity: call, transform: `translateY(${(1 - call) * 18}px)`}}>
+          <div style={{font: `10px ${mono}`, color: C.cyan, letterSpacing: ".12em"}}>CALLED THROUGH THE PAGE'S WEBMCP TOOL</div>
+          <div style={{marginTop: 10, font: `15px ${mono}`}}>apply_project_constraint</div>
+          <div style={{marginTop: 10, color: "#b6cbd7", font: `11px/1.55 ${mono}`}}>constraint: offline-first prototype<br />preservePicks: ["Expo"]</div>
         </div>
       </div>
     </Scene>
   );
 };
 
-const CollaborationScene = () => {
+const RevisionScene = () => {
   const frame = useCurrentFrame();
-  const shared = spring({ frame: frame - 25, fps: 30, config: { damping: 16, stiffness: 135 }, durationInFrames: 34 });
+  const additions = [
+    ["Expo SQLite", "Local database", "#17202b"],
+    ["NetInfo", "Connection state", "#159fca"],
+    ["expo-examples", "Official reference", C.blue],
+  ];
   return (
-    <Scene sheet="SHEET 06 / HUMAN + AGENT">
-      <div style={{ position: "absolute", left: 120, top: 145, right: 120 }}>
-        <div style={{ textAlign: "center" }}><div style={{ fontFamily: mono, color: C.blue, letterSpacing: "0.14em" }}>ONE SHARED OBJECT</div><h2 style={{ fontFamily: titleFont, fontSize: 68, margin: "10px 0 50px", textTransform: "uppercase" }}>The page is the plan</h2></div>
-        <div style={{ display: "grid", gridTemplateColumns: "360px 1fr 360px", gap: 70, alignItems: "center" }}>
-          <div style={{ textAlign: "center" }}><div style={{ width: 138, height: 138, borderRadius: 100, background: C.yellow, border: `3px solid ${C.ink}`, display: "grid", placeItems: "center", margin: "0 auto", fontFamily: titleFont, fontSize: 56, fontWeight: 900 }}>U</div><div style={{ fontFamily: titleFont, fontSize: 34, fontWeight: 800, marginTop: 18 }}>Person</div><div style={{ fontFamily: mono, fontSize: 13, color: C.muted, marginTop: 8 }}>CLICKS · QUESTIONS · UNDERSTANDS</div></div>
-          <div style={{ transform: `scale(${0.92 + shared * 0.08})`, opacity: shared, border: `3px solid ${C.ink}`, background: C.panel, boxShadow: `12px 12px 0 ${C.ink}1d`, padding: 28 }}>
-            <div style={{ display: "flex", justifyContent: "space-between", fontFamily: mono, fontSize: 12, color: C.muted, borderBottom: `2px solid ${C.line}`, paddingBottom: 15 }}><span>FINAL BUILD BRIEF</span><span>REV 01</span></div>
-            <div style={{ marginTop: 22, display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
-              {["Selected stack", "Equipped workspace", "Cited evidence", "Build order"].map((text, index) => <div key={text} style={{ border: `1px solid ${C.line}`, background: index === 1 ? "#e3f0ff" : C.white, padding: 18, fontFamily: titleFont, fontSize: 23, fontWeight: 700 }}><span style={{ color: C.green }}>✓</span> {text}</div>)}
-            </div>
-            <div style={{ marginTop: 18, background: C.blue, color: C.white, padding: 15, textAlign: "center", fontFamily: mono, fontSize: 13, letterSpacing: "0.12em" }}>COPY BUILD BRIEF</div>
-          </div>
-          <div style={{ textAlign: "center" }}><div style={{ width: 138, height: 138, borderRadius: 100, background: C.cyan, border: `3px solid ${C.ink}`, display: "grid", placeItems: "center", margin: "0 auto", fontFamily: titleFont, fontSize: 56, fontWeight: 900 }}>A</div><div style={{ fontFamily: titleFont, fontSize: 34, fontWeight: 800, marginTop: 18 }}>Agent</div><div style={{ fontFamily: mono, fontSize: 13, color: C.muted, marginTop: 8 }}>INSPECTS · REFINES · RENDERS</div></div>
+    <Scene sheet="SHEET 08 / OFFLINE-FIRST REVISION">
+      <div style={{position: "absolute", left: 100, right: 100, top: 135}}>
+        <div style={{display: "flex", justifyContent: "space-between", alignItems: "end", borderBottom: `3px solid ${C.ink}`, paddingBottom: 17}}><div><div style={{font: `12px ${mono}`, color: C.green, letterSpacing: ".13em"}}>REV 02 · REQUIREMENT APPLIED</div><h2 style={{font: `800 61px ${display}`, textTransform: "uppercase", margin: "6px 0 0"}}>Expo stays. Offline support arrives.</h2></div><div style={{border: `3px solid ${C.green}`, color: "#147a54", padding: "14px 20px", font: `700 16px ${mono}`, transform: "rotate(-2deg)"}}>KEPT · EXPO</div></div>
+        <div style={{display: "flex", justifyContent: "center", alignItems: "center", gap: 26, marginTop: 45}}>
+          <LogoNode name="Expo" role="preserved framework" color="#17202b" delay={0} />
+          <span style={{font: `38px ${mono}`, color: C.blue}}>＋</span>
+          {additions.map(([name, role, color], index) => <LogoNode key={name} name={name} role={role} color={color} small delay={18 + index * 18} />)}
         </div>
-        <DrawLine x={438} y={380} width={155} delay={15} />
-        <DrawLine x={1080} y={380} width={155} delay={28} />
+        <div style={{marginTop: 40, display: "grid", gridTemplateColumns: "180px 1fr", border: `2px solid ${C.coral}`, background: "#fff5ee"}}><div style={{background: C.coral, color: C.white, display: "grid", placeItems: "center", font: `12px ${mono}`, letterSpacing: ".1em"}}>SYNC TRADEOFF</div><div style={{padding: "19px 24px", font: `22px/1.35 ${body}`}}>Offline writes need a sync queue, a conflict policy, and recovery tests.</div></div>
+        <div style={{marginTop: 24, borderTop: `2px solid ${C.ink}`, paddingTop: 14}}><div style={{font: `10px ${mono}`, color: C.muted, letterSpacing: ".12em"}}>STILL IN THE SAME EQUIPPED WORKSPACE</div><div style={{display: "grid", gridTemplateColumns: "repeat(6,1fr)", gap: 9, marginTop: 11}}>{["Expo MCP", "Expo Doctor", "agent-device", "Callstack skills", "Supabase MCP", "Vibe Intel"].map((name, index) => { const p = enter(frame, 30, 70 + index * 4); return <div key={name} style={{border: `1px solid ${C.line}`, background: C.panel, padding: "11px 9px", font: `10px ${mono}`, textAlign: "center", opacity: p}}>{name}</div>; })}</div></div>
+      </div>
+    </Scene>
+  );
+};
+
+const ToolsScene = () => {
+  const frame = useCurrentFrame();
+  const tools = [
+    "build_project_blueprint",
+    "inspect_project_blueprint",
+    "apply_project_constraint",
+    "refine_project_blueprint",
+    "survey_stack_tools",
+    "consult_stack_intel",
+    "render_project_blueprint",
+  ];
+  return (
+    <Scene sheet="SHEET 10 / SEVEN WEBMCP TOOLS">
+      <div style={{position: "absolute", left: 92, right: 92, top: 132, display: "grid", gridTemplateColumns: "1.05fr .95fr", gap: 30}}>
+        <div><div style={{font: `12px ${mono}`, color: C.blue, letterSpacing: ".13em"}}>document.modelContext.registerTool(...)</div><h2 style={{font: `800 59px ${display}`, textTransform: "uppercase", margin: "7px 0 26px"}}>Agent actions change<br />the visible plan</h2><div style={{display: "grid", gap: 10}}>{tools.map((name, index) => {const p = enter(frame, 30, index * 8); return <div key={name} style={{display: "grid", gridTemplateColumns: "44px 1fr", border: `1px solid ${index < 3 ? C.blue : C.line}`, background: index < 3 ? "#e4efff" : C.panel, opacity: p}}><span style={{padding: "12px", background: index < 3 ? C.blue : C.ink, color: C.white, font: `11px ${mono}`, textAlign: "center"}}>{String(index + 1).padStart(2, "0")}</span><span style={{padding: "12px 14px", font: `13px ${mono}`}}>{name}</span></div>;})}</div></div>
+        <div style={{border: `3px solid ${C.ink}`, background: C.panel, boxShadow: "12px 12px 0 rgba(11,40,65,.09)", padding: 28}}>
+          <div style={{font: `11px ${mono}`, color: C.muted, letterSpacing: ".12em"}}>SHARED PAGE STATE</div>
+          <div style={{marginTop: 24, display: "grid", gap: 18}}>
+            {[["01", "BUILD", "REV 01 appears"], ["02", "INSPECT", "Expo detail opens"], ["03", "REVISE", "REV 02 redraws"]].map(([num, action, result], index) => {const p = enter(frame, 30, 18 + index * 28); return <div key={num} style={{display: "grid", gridTemplateColumns: "70px 1fr", border: `2px solid ${C.ink}`, opacity: p, transform: `translateX(${(1 - p) * 24}px)`}}><div style={{background: index === 2 ? C.green : C.ink, color: C.white, display: "grid", placeItems: "center", font: `18px ${mono}`}}>{num}</div><div style={{padding: "18px 20px"}}><div style={{font: `11px ${mono}`, color: C.blue}}>{action}</div><div style={{font: `700 25px ${display}`, marginTop: 5}}>{result}</div></div></div>;})}
+          </div>
+          <div style={{marginTop: 28, background: C.ink, color: C.white, padding: 17, textAlign: "center", font: `11px ${mono}`, letterSpacing: ".1em"}}>ONE PAGE · ONE PLAN · SHARED CONTEXT</div>
+        </div>
       </div>
     </Scene>
   );
@@ -351,51 +414,37 @@ const CollaborationScene = () => {
 
 const OutroScene = () => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const enter = spring({ frame, fps, config: { damping: 18, stiffness: 100 }, durationInFrames: 40 });
-  return (
-    <Scene sheet="SHEET 07 / READY TO BUILD">
-      <div style={{ position: "absolute", inset: 0, display: "grid", placeItems: "center", textAlign: "center" }}>
-        <div style={{ transform: `scale(${0.92 + enter * 0.08})`, opacity: enter }}>
-          <div style={{ fontFamily: mono, color: C.blue, fontSize: 17, letterSpacing: "0.18em" }}>STACK BLUEPRINT</div>
-          <h2 style={{ fontFamily: titleFont, fontSize: 96, lineHeight: 0.95, textTransform: "uppercase", margin: "22px auto 30px", maxWidth: 1300 }}>Equip the agent.<br /><span style={{ color: C.blue }}>Then build.</span></h2>
-          <div style={{ width: 720, height: 3, background: C.ink, margin: "0 auto 28px" }} />
-          <div style={{ fontFamily: titleFont, fontSize: 32 }}>stack-blueprint.vercel.app</div>
-          <div style={{ marginTop: 20, fontFamily: mono, fontSize: 14, color: C.muted, letterSpacing: "0.13em" }}>LIVE WEBMCP TOOL · PUBLIC SOURCE · EXPLAINABLE PICKS</div>
-        </div>
-      </div>
-    </Scene>
-  );
+  const p = enter(frame, 30, 0);
+  return <Scene sheet="SHEET 11 / READY TO BUILD"><div style={{position: "absolute", inset: 0, display: "grid", placeItems: "center", textAlign: "center"}}><div style={{opacity: p, transform: `scale(${.94 + .06 * p})`}}><div style={{font: `13px ${mono}`, color: C.blue, letterSpacing: ".18em"}}>STACK BLUEPRINT</div><h2 style={{font: `800 91px/.95 ${display}`, textTransform: "uppercase", margin: "22px 0 28px"}}>One current plan.<br /><span style={{color: C.blue}}>Built together.</span></h2><div style={{height: 3, width: 760, margin: "0 auto 25px", background: C.ink}} /><div style={{font: `30px ${body}`}}>stack-blueprint.vercel.app</div><div style={{marginTop: 17, font: `12px ${mono}`, color: C.muted, letterSpacing: ".12em"}}>SOFTWARE STACK · AI WORKSPACE · EXECUTION INSTRUCTIONS</div></div></div></Scene>;
 };
 
 const CaptionLayer = () => {
   const frame = useCurrentFrame();
-  const { fps } = useVideoConfig();
-  const now = (frame / fps) * 1000;
+  const {fps} = useVideoConfig();
+  const now = frame / fps * 1000;
   const caption = captions.find((item) => item.startMs <= now && item.endMs > now);
   if (!caption) return null;
-  const fade = Math.min(1, (now - caption.startMs) / 140, (caption.endMs - now) / 140);
-  return (
-    <div style={{ position: "absolute", left: 250, right: 250, bottom: 34, display: "flex", justifyContent: "center", opacity: fade, zIndex: 50 }}>
-      <div style={{ background: "rgba(7,28,45,.94)", color: C.white, border: "1px solid rgba(255,255,255,.2)", padding: "13px 22px", fontFamily: titleFont, fontSize: 25, lineHeight: 1.2, textAlign: "center", boxShadow: "0 6px 18px rgba(7,28,45,.18)" }}>{caption.text}</div>
-    </div>
-  );
+  const fade = Math.min(1, (now - caption.startMs) / 120, (caption.endMs - now) / 120);
+  return <div style={{position: "absolute", left: 220, right: 220, bottom: 28, zIndex: 50, display: "flex", justifyContent: "center", opacity: fade}}><div style={{background: "rgba(11,40,65,.95)", border: "1px solid rgba(255,255,255,.22)", color: C.white, padding: "12px 20px", font: `23px/1.22 ${body}`, textAlign: "center", boxShadow: "0 6px 18px rgba(11,40,65,.16)"}}>{caption.text}</div></div>;
 };
 
-const S = (seconds: number) => Math.round(seconds * 30);
-
 export const StackBlueprintDemo = () => (
-  <AbsoluteFill style={{ background: C.paper }}>
+  <AbsoluteFill style={{background: C.paper}}>
+    <Audio src={staticFile("ambient-bed.wav")} loop volume={0.58} />
     <Audio src={staticFile("voiceover.m4a")} />
-    <Sequence from={S(0)} durationInFrames={S(13.4)} premountFor={S(1)}><IntroScene /></Sequence>
-    <Sequence from={S(13.4)} durationInFrames={S(14.7)} premountFor={S(1)}><ProblemScene /></Sequence>
-    <Sequence from={S(28.1)} durationInFrames={S(16.7)} premountFor={S(1)}><WebMcpScene /></Sequence>
-    <Sequence from={S(44.8)} durationInFrames={S(17)} premountFor={S(1)}><BuildScene /></Sequence>
-    <Sequence from={S(61.8)} durationInFrames={S(29.5)} premountFor={S(1)}><WorkspaceScene /></Sequence>
-    <Sequence from={S(91.3)} durationInFrames={S(15.7)} premountFor={S(1)}><InspectScene /></Sequence>
-    <Sequence from={S(107)} durationInFrames={S(25)} premountFor={S(1)}><IntelScene /></Sequence>
-    <Sequence from={S(132)} durationInFrames={S(22)} premountFor={S(1)}><CollaborationScene /></Sequence>
-    <Sequence from={S(154)} durationInFrames={S(7)} premountFor={S(1)}><OutroScene /></Sequence>
+    <Sequence from={S(0)} durationInFrames={S(3.5)} premountFor={S(1)}><TitleScene /></Sequence>
+    <Sequence from={S(3.5)} durationInFrames={S(15.7)} premountFor={S(1)}><PromptScene /></Sequence>
+    <Sequence from={S(19.2)} durationInFrames={S(9.9)} premountFor={S(1)}><StackOnlyScene /></Sequence>
+    <Sequence from={S(29.1)} durationInFrames={S(11.5)} premountFor={S(1)}><WebMcpScene /></Sequence>
+    <Sequence from={S(40.6)} durationInFrames={S(11.2)} premountFor={S(1)}><ResearchScene /></Sequence>
+    <Sequence from={S(51.8)} durationInFrames={S(27.16)} premountFor={S(1)}><WorkspaceScene /></Sequence>
+    <Sequence from={S(78.96)} durationInFrames={S(6.24)} premountFor={S(1)}><CapabilitiesScene /></Sequence>
+    <Sequence from={S(85.2)} durationInFrames={S(14.6)} premountFor={S(1)}><InspectScene /></Sequence>
+    <Sequence from={S(99.8)} durationInFrames={S(13.6)} premountFor={S(1)}><ConstraintScene /></Sequence>
+    <Sequence from={S(113.4)} durationInFrames={S(12.3)} premountFor={S(1)}><RevisionScene /></Sequence>
+    <Sequence from={S(125.7)} durationInFrames={S(21.4)} premountFor={S(1)}><IntelScene /></Sequence>
+    <Sequence from={S(147.1)} durationInFrames={S(13.3)} premountFor={S(1)}><ToolsScene /></Sequence>
+    <Sequence from={S(160.4)} durationInFrames={S(3.6)} premountFor={S(1)}><OutroScene /></Sequence>
     <CaptionLayer />
   </AbsoluteFill>
 );

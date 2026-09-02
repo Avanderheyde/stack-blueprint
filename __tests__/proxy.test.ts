@@ -79,4 +79,17 @@ describe("public catalog proxy", () => {
     expect(options.credentials).toBeUndefined();
     expect(options.headers).not.toHaveProperty("authorization");
   });
+
+  it("rate limits repeated requests from one public client", async () => {
+    const fetchMock = vi.fn().mockResolvedValue(new Response("{}", { status: 200 }));
+    vi.stubGlobal("fetch", fetchMock);
+    let response = new Response();
+    for (let index = 0; index < 61; index += 1) {
+      const next = request("search_intel", { query: "agent evaluation", limit: 8 });
+      next.headers.set("x-forwarded-for", "203.0.113.25");
+      response = await POST(next);
+    }
+    expect(response.status).toBe(429);
+    expect(response.headers.get("retry-after")).toBe("60");
+  });
 });

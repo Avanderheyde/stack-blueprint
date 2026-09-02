@@ -1,59 +1,68 @@
-# Stack Blueprint demo — narration and edit map
+# Stack Blueprint demo: WebMCP collaboration cut
 
-Target runtime: 2 minutes 20 seconds. Read naturally at roughly 140 words per minute. The bracketed lines are editing cues; **do not read them aloud**.
+Target runtime: 2 minutes 35 seconds to 2 minutes 50 seconds. Read naturally. The bracketed lines are visual directions and should not be recorded.
 
-## Clean narration track
+## Narration and shot map
 
-[0:00 — Completed blueprint already visible]
+[0:00: Start on the empty Stack Blueprint prompt. The product name draws onto the page.]
 
-This is Stack Blueprint. Describe any software idea, and it draws the product stack and the exact AI workspace your coding agent needs to build it well.
+This is Stack Blueprint. Tell it what you want to build, and it plans the software and AI tools your coding agent needs.
 
-[0:12 — Show a plain agent’s short stack answer]
+[0:09: Type the complete roommate-fridge prompt in large, readable text.]
 
-Most agents can name a sensible stack. For this roommate fridge app, Expo, React Native, and Supabase are reasonable choices. But picking Expo is not the hard part. The hard part is equipping the agent to execute Expo professionally.
+For this demo, I want a silly mobile app where roommates photograph the fridge, claim their food, and vote on suspicious leftovers.
 
-[0:31 — Open Stack Blueprint in ChatGPT’s in-app browser]
+[0:18: Briefly draw Expo, React Native, and Supabase by themselves.]
 
-Stack Blueprint uses WebMCP so the browser agent can operate the real planning surface. I give it the same project description and ask it to build the blueprint. There is no long questionnaire and no disconnected answer in chat.
+A normal agent can suggest Expo, React Native, and Supabase. Those are sensible choices, but it still has to guess how to use them well.
 
-[0:48 — Show the WebMCP tool call, then the drawing animation]
+[0:31: Show the compatible browser discovering the page tools. The agent calls `build_project_blueprint`. The drawing begins.]
 
-The agent calls `build_project_blueprint`. The page infers that this is a mobile prototype, consults VibeLeaderboard’s maintained tool index and engineering Intel, and then draws the result into shared page state.
+Stack Blueprint turns that answer into shared work. With WebMCP, the agent submits the idea directly to the page, and the visible blueprint draws itself.
 
-[1:04 — Hold on the equipped AI workspace]
+[0:46: Animate three consultation steps: understand the project, search current tools and advice, equip the workspace.]
 
-The application stack is straightforward. The valuable part is what appears above it. Expo activates the official Expo MCP, exact Expo project, design, router, animation, and NativeWind skills, React Doctor, Expo Doctor, and device automation. Supabase activates its MCP and database guidance. Tools are grouped by role, so the answer stays scannable.
+Behind the blueprint is VibeLeaderboard, a maintained index of AI tools and recent agent-building advice. Stack Blueprint searches it, filters out unrelated results, and keeps only what can help with this project.
 
-[1:30 — Open Expo MCP and agent-device nodes]
+[1:00: Reveal the equipped AI workspace above the software stack. Highlight the named groups rather than every individual logo.]
 
-Every logo is inspectable. I can see what the tool does, why it matches this project, and open its official source. Production-only services are deliberately deferred when a prototype does not need them.
+Because this app uses Expo, React Native, and Supabase, the workspace adds matching connections, mobile and design skills, React Doctor, Expo Doctor, and device testing. Now the agent has current guidance and a way to prove the real app works.
 
-[1:46 — Open Vibe Intel]
+[1:19: In the agent, ask: “Why was Expo selected?” Show `inspect_project_blueprint` being called. The Expo explanation opens on the page.]
 
-Vibe Intel is not a random article feed. Stack Blueprint gathers relevant evidence and converts it into instructions the agent can execute: define acceptance criteria before implementation, use a fresh evaluator, keep repository context explicit, and require user-visible verification.
+I ask why Expo was selected. The inspection tool opens the same explanation for both of us: why it fits, its tradeoff, alternatives, and official source.
 
-[2:07 — Show agent inspecting a node, then the final build brief]
+[1:39: Ask: “Keep Expo, but optimize this for an offline-first prototype.” Show `apply_project_constraint` being called.]
 
-Because this is WebMCP, the person and agent work on the same object. The person can click through the drawing while the agent can inspect, refine, and render the structured plan. The final brief carries the selected stack, specialized workspace, evidence, and build order into implementation.
+Then I add a real constraint: keep Expo, but make the prototype work offline. The agent applies that requirement to the existing blueprint instead of starting over.
 
-[2:27 — End card]
+[1:50: Show revision 02. Highlight KEPT: Expo, then draw Expo SQLite, NetInfo, and `expo-examples`.]
 
-Stack Blueprint does not just tell an agent what to build with. It equips the agent to build it better.
+Revision two keeps Expo and adds Expo SQLite, NetInfo, and official Expo examples for local data, connection-aware syncing, and implementation guidance. It also names the synchronization tradeoffs.
+
+[2:08: Open Vibe Intel briefly. Show unrelated results disappearing and the retained advice becoming short project instructions.]
+
+Relevant engineering advice becomes instructions the agent can execute: define success before coding, keep context clear, review independently, and require proof from the running app.
+
+[2:20: Zoom out to the full revised blueprint. Briefly show the registered-tool code, then return to the completed page.]
+
+Under the hood, the page registers seven WebMCP tools. They use the same logic as the visible controls, so agent actions update the page instead of creating a disconnected chat answer.
+
+[2:36: End card with the complete revised blueprint and live URL.]
+
+Stack Blueprint gives builders and their agents one current, inspectable plan they can understand and improve together.
+
+## Why this cut fits the judging criteria
+
+- WebMCP leverage: shows discovery and three real calls that build, inspect, and revise visible page state.
+- Execution: demonstrates a complete public product workflow rather than an isolated protocol example.
+- Potential impact: helps AI-assisted builders find the stack-specific tools and instructions they otherwise need to research themselves.
+- Creativity and ambition: turns stack planning into a shared, revisioned architectural drawing for a person and agent.
 
 ## Recording notes
 
-- Record in a quiet room with headphones and the microphone 6–10 inches away.
-- Read the complete script twice. If you stumble, pause for two seconds and restart the sentence; do not stop the recording.
-- Leave three seconds of silence at the beginning and end for noise cleanup.
+- Record each paragraph as a separate take with one second of quiet before and after it.
+- Keep the microphone 6 to 10 inches away and speak slightly slower during product names.
+- Say “Vibe Leaderboard” as two words and “Web M C P” as individual letters if that feels clearer aloud.
+- If a sentence feels crowded, pause after the first complete thought. Do not rush the list of tools.
 - WAV, M4A, or high-quality MP3 are all fine.
-- Speak conversationally. A clean, natural take is better than trying to hit the timestamps exactly; the screen edit will follow your voice.
-
-## Planned visual edit
-
-1. Open on the finished blueprint in the first second so judges immediately see the working product.
-2. Use a five-to-eight-second plain-agent comparison, not a long fake failure demo.
-3. Show ChatGPT discovering and calling the real `build_project_blueprint` WebMCP tool.
-4. Cut or speed up the slower portions of the drawing reveal while preserving the construction effect.
-5. Hold on the equipped workspace long enough to read its five group labels.
-6. Open Expo MCP, agent-device, and Vibe Intel; keep each explanation on screen only while its narration is relevant.
-7. Finish with the copied build brief and the live URL.

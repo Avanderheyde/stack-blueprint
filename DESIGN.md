@@ -1,4 +1,4 @@
-# Stack Blueprint — Design Contract
+# Stack Blueprint: Design Contract
 
 ## Product context
 
@@ -8,7 +8,7 @@ Audience: technical and AI-assisted builders choosing a new project's architectu
 
 ## Aesthetic direction
 
-An architect's drafting desk and issued construction drawing set, not a SaaS dashboard, a selectable logo catalog, or retro blueprint cosplay. Light, direct, precise, and visibly under construction. Technical lettering, measured rules, sheet identifiers, revision marks, and plan symbols differentiate it from Arjay's oversized-sans stack-picker composition.
+An architect's drafting desk and issued construction drawing set, not a SaaS dashboard, a selectable logo catalog, or retro blueprint cosplay. Light, direct, precise, and visibly under construction. Technical lettering, measured rules, sheet identifiers, revision marks, and plan symbols give the product its own construction-document identity.
 
 Decoration level: low. Every line denotes structure, state, measurement, or hierarchy.
 

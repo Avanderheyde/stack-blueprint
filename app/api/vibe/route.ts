@@ -17,8 +17,23 @@ const ALLOWED_TOOLS = new Set([
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
 const MAX_BODY_BYTES = 12_000;
+const RATE_WINDOW_MS = 60_000;
+const RATE_LIMIT = 60;
+const rateWindows = new Map<string, { startedAt: number; count: number }>();
 const isMember = (values: readonly string[], value: unknown) =>
   typeof value === "string" && values.includes(value);
+
+const exceedsRateLimit = (request: NextRequest) => {
+  const client = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  const now = Date.now();
+  const current = rateWindows.get(client);
+  if (!current || now - current.startedAt >= RATE_WINDOW_MS) {
+    rateWindows.set(client, { startedAt: now, count: 1 });
+    return false;
+  }
+  current.count += 1;
+  return current.count > RATE_LIMIT;
+};
 
 type RpcRequest = {
   jsonrpc?: unknown;
@@ -28,6 +43,9 @@ type RpcRequest = {
 };
 
 export async function POST(request: NextRequest) {
+  if (exceedsRateLimit(request)) {
+    return Response.json({ error: "Too many public catalog requests. Try again in one minute." }, { status: 429, headers: { "retry-after": "60" } });
+  }
   const contentLength = Number(request.headers.get("content-length") ?? 0);
   if (contentLength > MAX_BODY_BYTES) {
     return Response.json({ error: "Request body is too large." }, { status: 413 });
@@ -112,7 +130,7 @@ export async function POST(request: NextRequest) {
       method: "POST",
       headers: {
         "content-type": "application/json",
-        "user-agent": "vibe-intel-desk/0.1",
+        "user-agent": "stack-blueprint/0.1",
       },
       body: JSON.stringify(body),
       cache: "no-store",

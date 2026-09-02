@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildCatalogPacket, buildIntelPacket, deferredSuggestionsFor, draftChoices, inferProfile, specificStackFor } from "@/components/research-desk";
+import { buildCatalogPacket, buildIntelPacket, choiceContextFor, deferredSuggestionsFor, draftChoices, inferProfile, specificStackFor, summarizeRevision, verifyWorkspacePicks } from "@/components/research-desk";
 
 describe("automatic blueprint consultation", () => {
   it("infers a playful mobile prototype without asking stack questions", () => {
@@ -35,6 +35,12 @@ describe("automatic blueprint consultation", () => {
     expect(inferProfile("A SaaS web app where design teams review client files").projectKind).toBe("web");
   });
 
+  it("does not classify every project mentioning a coding agent as an AI product", () => {
+    expect(inferProfile("A recipe web app that my coding agent will build").projectKind).toBe("web");
+    expect(inferProfile("An AI agent that reconciles invoices").projectKind).toBe("ai-product");
+    expect(inferProfile("A proof of concept for neighborhood plant swaps").stage).toBe("prototype");
+  });
+
   it("does not mistake words containing api for an API service", () => {
     const project = "A private offline mood journal for therapists that never uploads patient notes and works as an installable web app";
     const profile = inferProfile(project);
@@ -68,6 +74,30 @@ describe("automatic blueprint consultation", () => {
     expect(picks.every((pick) => pick.why && pick.sourceUrl)).toBe(true);
   });
 
+  it("respects an explicit non-OpenAI harness preference", () => {
+    const project = "A mobile prototype built with Claude Code for roommates sharing food";
+    const profile = inferProfile(project);
+    const names = specificStackFor(project, profile, draftChoices(project, profile)).map((pick) => pick.name);
+    expect(names).toEqual(expect.arrayContaining(["Claude Code", "Claude model"]));
+    expect(names).not.toEqual(expect.arrayContaining(["Codex", "GPT-5.6 Sol"]));
+  });
+
+  it("marks maintained catalog matches on visible workspace picks", () => {
+    const project = "A silly mobile app for roommates";
+    const profile = inferProfile(project);
+    const picks = specificStackFor(project, profile, draftChoices(project, profile));
+    const verified = verifyWorkspacePicks(picks, [
+      { id: "expo-mcp", title: "Expo MCP Server", tool_type: "mcp_server", maintained: true, url: "https://example.com/expo-mcp" },
+      { id: "supabase-mcp", title: "Supabase MCP", tool_type: "mcp_server", interfaces: ["mcp"], maintained: true, url: "https://example.com/supabase-mcp" },
+      { id: "stale", title: "React Doctor", tool_type: "utility", maintained: false, url: "https://example.com/stale" },
+    ]);
+    expect(verified.find((pick) => pick.name === "Expo MCP")?.evidence).toEqual(expect.objectContaining({ status: "catalog-verified", catalogTitle: "Expo MCP Server" }));
+    expect(verified.find((pick) => pick.name === "Supabase MCP")?.evidence?.status).toBe("catalog-verified");
+    expect(verified.find((pick) => pick.name === "supabase")?.evidence?.status).toBe("official-mapping");
+    expect(verified.find((pick) => pick.name === "supabase-postgres-best-practices")?.evidence?.status).toBe("official-mapping");
+    expect(verified.find((pick) => pick.name === "React Doctor")?.evidence?.status).toBe("official-mapping");
+  });
+
   it.each([
     ["A Chrome extension that summarizes GitHub pull requests", "browser-extension", ["WXT", "React", "OpenAI Responses API"], ["Next.js"]],
     ["A static portfolio for a ceramic artist with a contact form", "static-site", ["Astro", "Cloudflare Pages"], ["Supabase"]],
@@ -90,6 +120,32 @@ describe("automatic blueprint consultation", () => {
     const names = specificStackFor(project, profile, draftChoices(project, profile)).map((pick) => pick.name);
     expect(names).toContain("OpenAI Realtime API");
     expect(names).not.toContain("OpenAI Responses API");
+  });
+
+  it("keeps Expo and adds an offline-first mobile layer when the project constraint changes", () => {
+    const original = "A silly mobile app where roommates photograph the fridge, claim their food, and vote on suspicious leftovers";
+    const constrained = `${original}. Additional constraint: Keep Expo, but optimize this for an offline-first prototype.`;
+    const beforeProfile = inferProfile(original);
+    const afterProfile = inferProfile(constrained);
+    const before = specificStackFor(original, beforeProfile, draftChoices(original, beforeProfile));
+    const after = specificStackFor(constrained, afterProfile, draftChoices(constrained, afterProfile));
+    const afterNames = after.map((pick) => pick.name);
+    const revision = summarizeRevision(before, after, "Keep Expo, but optimize this for an offline-first prototype.", ["Expo"]);
+
+    expect(afterNames).toEqual(expect.arrayContaining(["Expo", "Expo SQLite", "NetInfo", "expo-examples"]));
+    expect(afterNames).toEqual(expect.arrayContaining(["Supabase", "Expo MCP", "Expo Doctor", "agent-device"]));
+    expect(revision.preserved).toEqual(["Expo"]);
+    expect(revision.added).toEqual(expect.arrayContaining(["Expo SQLite", "NetInfo", "expo-examples"]));
+    expect(revision.removed).toEqual([]);
+  });
+
+  it("returns a project-specific tradeoff when an agent inspects Expo", () => {
+    const project = "A mobile app for roommates";
+    const profile = inferProfile(project);
+    const expo = specificStackFor(project, profile, draftChoices(project, profile)).find((pick) => pick.id === "expo");
+    expect(expo).toBeDefined();
+    expect(choiceContextFor(expo!).tradeoff).toMatch(/Expo-compatible|native/i);
+    expect(choiceContextFor(expo!).alternatives.length).toBeGreaterThan(0);
   });
 
   it("adds a professional UI execution layer instead of stopping at the framework", () => {
@@ -155,6 +211,12 @@ describe("automatic blueprint consultation", () => {
       { id: "right-stack", title: "Offline React application testing", why: "Verify service workers and local state.", relevance: 0.6, intel_page: "https://example.com/offline" },
     ], "React Vite Workbox Cloudflare offline application testing");
     expect(stackAwareIntel.map((item) => item.title)).toEqual(["Offline React application testing"]);
+
+    const incompleteFallback = buildIntelPacket([
+      { id: "fallback", title: "Practical deployment guidance", why: "Practical guidance:", description: "Short", relevance: 0.8, intel_page: "https://example.com/fallback" },
+    ]);
+    expect(incompleteFallback[0]?.instruction).not.toMatch(/Practical guidance:\s*$/);
+    expect(incompleteFallback[0]?.instruction).toContain("Practical deployment guidance");
 
     const catalog = buildCatalogPacket([
       { id: "related", title: "Related", relevance: 0.6, maintained: true, url: "https://example.com/related", why: "A nearby product pattern." },

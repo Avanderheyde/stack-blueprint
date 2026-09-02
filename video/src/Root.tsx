@@ -2,7 +2,7 @@ import { Composition } from "remotion";
 import { StackBlueprintDemo } from "./StackBlueprintDemo";
 
 export const FPS = 30;
-export const DURATION_SECONDS = 161;
+export const DURATION_SECONDS = 164;
 
 export const RemotionRoot = () => (
   <Composition

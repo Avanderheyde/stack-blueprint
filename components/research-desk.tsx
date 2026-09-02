@@ -11,10 +11,12 @@ type Stage = "prototype" | "production" | "platform";
 type Option = { id: string; name: string; summary: string; bestFor: string; tradeoff: string; examples: string };
 type Layer = { id: string; number: string; title: string; question: string; drawing: string; options: Option[] };
 type RenderedPlan = { title: string; summary: string; buildOrder: string[] };
-type StackPick = { id: string; name: string; kind: string; branch: "product" | "services" | "build"; icon: string; role: string; why: string; sourceUrl: string };
+type PickEvidence = { status: "catalog-verified" | "official-mapping"; catalogTitle?: string; catalogUrl?: string };
+type StackPick = { id: string; name: string; kind: string; branch: "product" | "services" | "build"; icon: string; role: string; why: string; sourceUrl: string; evidence?: PickEvidence };
 type DeferredSuggestion = { name: string; kind: string; when: string; why: string };
 type IntelEvidence = { id: string; title: string; takeaway: string; instruction: string; intelUrl: string; sourceUrl: string | null; source: string | null; publishedAt: string | null; relevance: number | null };
 type CatalogEvidence = { id: string; title: string; category: string | null; relevance: number | null; maintained: boolean | null; url: string; why: string };
+type BlueprintRevision = { id: string; constraint: string; summary: string; preserved: string[]; added: string[]; removed: string[] };
 
 const toolRole = (app: CatalogApp) => app.tool_type
   ? app.tool_type.split("_").map((word) => word.toUpperCase()).join(" ")
@@ -201,9 +203,9 @@ export function inferProfile(project: string) {
             ? "desktop" : includesAny(text, ["multiplayer", "browser game", "mobile game", "video game"])
               ? "game" : includesAny(text, ["online shop", "online store", "ecommerce", "e-commerce", "storefront", "shopping cart"])
                 ? "commerce" : includesAny(text, ["static site", "portfolio", "landing page", "marketing site", "brochure site"])
-                  ? "static-site" : includesAny(text, ["ai product", "ai app", "copilot", "assistant", "agent"])
+                  ? "static-site" : includesAny(text, ["ai product", "ai app", "ai assistant", "ai agent", "agentic app", "copilot"])
                     ? "ai-product" : "web";
-  const stage: Stage = includesAny(text, ["prototype", "mvp", "weekend", "hackathon", "silly", "experiment"])
+  const stage: Stage = includesAny(text, ["prototype", "proof of concept", "poc", "mvp", "first version", "demo", "test idea", "side project", "toy", "weekend", "hackathon", "silly", "experiment"])
     ? "prototype" : includesAny(text, ["enterprise", "platform", "million", "high scale", "multi-team", "global scale"])
       ? "platform" : "production";
   const speedRequested = /\b(quick|fast|ship|speed)\b/.test(text);
@@ -261,6 +263,7 @@ export function specificStackFor(project: string, profile: ReturnType<typeof inf
   const add = (pick: StackPick) => picks.push(pick);
   const pick = (id: string, name: string, kind: string, branch: StackPick["branch"], icon: string, role: string, why: string, sourceUrl: string) => add({ id, name, kind, branch, icon, role, why, sourceUrl });
   const localOnly = profile.priority === "privacy" && includesAny(text, ["never sends", "never send", "never upload", "local-only", "local only", "offline", "on-device"]);
+  const offlineFirst = includesAny(text, ["offline-first", "offline first", "local-first", "local first", "works offline", "work offline"]);
   const highScale = profile.stage === "platform" || includesAny(text, ["million", "high throughput", "high-scale", "high scale"]);
   const hasUi = !["service", "library", "automation"].includes(profile.projectKind);
   const needsBackend = includesAny(text, ["login", "account", "team", "comment", "sync", "multiplayer", "subscription", "database", "save", "share", "realtime", "real-time"]);
@@ -281,6 +284,10 @@ export function specificStackFor(project: string, profile: ReturnType<typeof inf
     pick("typescript", "TypeScript", "Coding language", "product", logo("typescript"), "Shared application language", "One typed language across screens, data access, tests, and build tooling keeps a small project coherent.", "https://www.typescriptlang.org/");
     pick("expo-router", "Expo Router", "Navigation", "product", logo("expo"), "File-based mobile navigation", "Expo Router gives deep links and native navigation conventions without a custom routing layer.", "https://docs.expo.dev/router/introduction/");
     pick("nativewind", "NativeWind", "Styling system", "product", logo("tailwindcss"), "Utility styling for React Native", "NativeWind makes fast interface iteration possible without inventing a large component system.", "https://www.nativewind.dev/");
+    if (offlineFirst) {
+      pick("expo-sqlite", "Expo SQLite", "Local database", "product", logo("sqlite"), "Durable on-device source of truth", "Store reads and writes on the device first so the core fridge workflow remains fast and usable without a network connection. Sync to the shared backend when connectivity returns.", "https://docs.expo.dev/versions/latest/sdk/sqlite/");
+      pick("netinfo", "NetInfo", "Connectivity library", "product", logo("react"), "Connectivity-aware synchronization", "Observe connection state so queued uploads and ownership changes can retry deliberately instead of failing or silently disappearing while a roommate is offline.", "https://docs.expo.dev/versions/latest/sdk/netinfo/");
+    }
   } else if (profile.projectKind === "browser-extension") {
     pick("wxt", "WXT", "Extension framework", "product", logo("googlechrome"), "Cross-browser extension framework", "WXT handles manifests, content scripts, background workers, and Chrome/Firefox builds without hand-rolled extension plumbing.", "https://wxt.dev/");
     pick("react", "React", "UI framework", "product", logo("react"), "Popup and side-panel interface", "React fits interactive extension surfaces and keeps shared UI components straightforward.", "https://react.dev/");
@@ -362,8 +369,23 @@ export function specificStackFor(project: string, profile: ReturnType<typeof inf
   else if (profile.projectKind !== "commerce" && !localOnly && profile.projectKind !== "desktop") pick("vercel", "Vercel", "Web hosting", "services", logo("vercel"), "Deployment and preview URLs", "Vercel is a low-friction path for browser-delivered software and gives every change a preview URL.", "https://vercel.com/docs");
 
   const hasPick = (name: string) => picks.some((item) => item.name === name);
-  pick("codex", "Codex", "Agent harness", "build", modelLogo, "Primary coding-agent workspace", "Codex coordinates long-running implementation, review, worktrees, skills, and connected tools in one supervised harness.", "https://openai.com/index/introducing-the-codex-app/");
-  pick("gpt56", profile.priority === "cost" ? "GPT-5.6 Terra" : "GPT-5.6 Sol", "Builder model", "build", modelLogo, "Default implementation model", profile.priority === "cost" ? "Terra balances strong coding work with lower cost for an early project." : "Sol is the strongest default for architecture, implementation, debugging, and design judgment in Codex.", "https://developers.openai.com/api/docs/guides/latest-model");
+  const requestedHarness = includesAny(text, ["claude code", "anthropic agent"])
+    ? "claude" : includesAny(text, ["gemini cli", "google coding agent"])
+      ? "gemini" : includesAny(text, ["aider"])
+        ? "aider" : "codex";
+  if (requestedHarness === "claude") {
+    pick("claude-code", "Claude Code", "Agent harness", "build", modelLogo, "Prompt-selected coding-agent workspace", "The brief explicitly asks for Claude Code, so the blueprint preserves that harness while attaching the same stack-specific tools, skills, and verification gates.", "https://docs.anthropic.com/en/docs/claude-code/overview");
+    pick("claude-model", "Claude model", "Builder model", "build", modelLogo, "Model selected in Claude Code", "Use the strongest Claude coding model available in the chosen workspace, then reduce cost only after the acceptance tests establish that a smaller model is sufficient.", "https://docs.anthropic.com/en/docs/about-claude/models/overview");
+  } else if (requestedHarness === "gemini") {
+    pick("gemini-cli", "Gemini CLI", "Agent harness", "build", modelLogo, "Prompt-selected coding-agent workspace", "The brief explicitly asks for Gemini CLI, so the blueprint preserves that harness and equips it with the selected stack's connected tools and verification loop.", "https://github.com/google-gemini/gemini-cli");
+    pick("gemini-model", "Gemini model", "Builder model", "build", modelLogo, "Model selected in Gemini CLI", "Use the strongest coding model available in Gemini CLI for architecture and implementation, then validate whether a faster model can handle bounded follow-up work.", "https://ai.google.dev/gemini-api/docs/models");
+  } else if (requestedHarness === "aider") {
+    pick("aider", "Aider", "Agent harness", "build", modelLogo, "Prompt-selected terminal coding agent", "The brief explicitly asks for Aider, so the blueprint keeps its Git-centered workflow and adds stack-specific skills, tools, and deterministic verification around it.", "https://aider.chat/docs/");
+    pick("aider-model", "Aider model route", "Builder model", "build", modelLogo, "Provider-neutral model selection", "Choose Aider's implementation model from the providers available to the project, then record the selection and evaluate it against the same acceptance checks.", "https://aider.chat/docs/llms.html");
+  } else {
+    pick("codex", "Codex", "Agent harness", "build", modelLogo, "Default coding-agent workspace", "No harness preference was supplied, so Codex is the default. It coordinates implementation, review, worktrees, skills, and connected tools in one supervised workspace.", "https://openai.com/index/introducing-the-codex-app/");
+    pick("gpt56", profile.priority === "cost" ? "GPT-5.6 Terra" : "GPT-5.6 Sol", "Builder model", "build", modelLogo, "Default Codex implementation model", profile.priority === "cost" ? "Terra is the lower-cost default for an early project; replace it when project constraints or measured quality justify another model." : "Sol is the quality-first default for architecture, implementation, debugging, and design judgment; replace it when the project or evaluation evidence points elsewhere.", "https://developers.openai.com/api/docs/guides/latest-model");
+  }
   if (["React", "React Native", "Next.js"].some(hasPick)) pick("react-doctor", "React Doctor", "Diagnostic CLI", "build", logo("react"), "Deterministic React code-health review", "Run React Doctor after meaningful UI changes and in CI. It catches state and effect misuse, duplicated JSX, accessibility gaps, and performance traps that a coding agent can overlook when reviewing its own output.", "https://www.react.doctor/");
   if (profile.projectKind === "mobile") {
     pick("expo-mcp", "Expo MCP", "Agent MCP", "build", logo("expo"), "Live Expo, EAS, simulator, and React Native context", "Install the official Expo plugin so the agent can search version-current Expo docs, install SDK-compatible packages, inspect EAS builds, read TestFlight crash data, and capture simulator screenshots instead of guessing from stale training data.", "https://docs.expo.dev/mcp/");
@@ -376,6 +398,7 @@ export function specificStackFor(project: string, profile: ReturnType<typeof inf
     pick("callstack-rn-skills", "Callstack React Native Skills", "Agent skill suite", "build", skillLogo, "Production React Native performance and testing", "Add Callstack's maintained React Native skills for performance, navigation, testing, upgrades, and dogfooding. They complement Expo's framework guidance with production React Native practice.", "https://github.com/callstackincubator/agent-skills");
     pick("expo-doctor", "Expo Doctor", "Diagnostic CLI", "build", logo("expo"), "Expo dependency and configuration checks", "Run Expo Doctor before native builds to catch incompatible packages, configuration errors, and React Native ecosystem problems early.", "https://docs.expo.dev/develop/tools/");
     pick("agent-device", "agent-device", "Agent QA CLI", "build", skillLogo, "Operate and verify the running mobile app", "Give the agent a simulator feedback loop: inspect UI state, tap through flows, collect logs and network evidence, capture screenshots, and profile performance instead of declaring success from source code alone.", "https://docs.expo.dev/agents/agent-device/");
+    if (offlineFirst) pick("expo-examples-skill", "expo-examples", "Agent skill", "build", skillLogo, "Version-matched Expo integration examples", "Use Expo's official examples to start from a supported SQLite integration, then make the agent verify queued writes, reconnect behavior, and conflict handling in airplane mode.", "https://docs.expo.dev/skills/");
   } else if (hasUi) {
     if (["React", "Next.js"].some(hasPick)) pick("react-best-practices", "React Best Practices", "Agent skill", "build", skillLogo, "React implementation and performance review", "Use Vercel's React best-practices skill while implementing and reviewing components so data fetching, rendering, bundle size, and composition follow production patterns rather than plausible-looking defaults.", "https://vercel.com/docs");
     pick("impeccable-skill", "Impeccable", "Agent skill suite", "build", skillLogo, "Design context, critique, hardening, and anti-slop polish", "Establish the product's audience and visual contract first, then run focused critique, typography, layout, hardening, accessibility, and polish passes. This replaces a generic one-size-fits-all frontend prompt with a deliberate review pipeline.", "https://github.com/pbakaus/impeccable");
@@ -395,6 +418,41 @@ export function specificStackFor(project: string, profile: ReturnType<typeof inf
 
   if (includesAny(text, ["search", "catalog", "directory"])) pick("typesense", "Typesense", "Search service", "services", logo("typesense"), "Fast typo-tolerant search", "Typesense adds useful relevance and typo tolerance without the operational weight of a large search cluster.", "https://typesense.org/docs/");
   return picks;
+}
+
+export function choiceContextFor(pick: StackPick) {
+  const context: Record<string, { tradeoff: string; alternatives: string[] }> = {
+    expo: {
+      tradeoff: "Expo accelerates one-codebase mobile delivery, but the project must follow Expo-compatible native-module and build conventions. A fully custom native surface can justify more platform-specific control.",
+      alternatives: ["React Native Community CLI for deeper native control", "Swift and Kotlin for separate platform-native applications"],
+    },
+    supabase: {
+      tradeoff: "Supabase removes backend setup work, but the schema, authorization rules, and offline synchronization still need deliberate design.",
+      alternatives: ["Firebase for a document-oriented managed backend", "A product-owned API and Postgres for maximum backend control"],
+    },
+    "expo-sqlite": {
+      tradeoff: "A local database makes the app resilient and responsive, but synchronization, migrations, and conflict resolution become explicit product responsibilities.",
+      alternatives: ["Network-first caching for simpler read-heavy applications", "A managed local-first sync engine when collaborative conflicts become central"],
+    },
+    nativewind: {
+      tradeoff: "NativeWind speeds up styling and token reuse, but teams must avoid carrying web-only layout assumptions into native screens.",
+      alternatives: ["React Native StyleSheet for the smallest styling abstraction", "A native component system when strict platform consistency matters most"],
+    },
+  };
+  return context[pick.id] ?? {
+    tradeoff: "This choice earns its place only while its project-specific benefit is greater than its setup, maintenance, and integration cost.",
+    alternatives: [],
+  };
+}
+
+export function summarizeRevision(previous: StackPick[], next: StackPick[], constraint: string, preservedNames: string[] = []): BlueprintRevision {
+  const previousByName = new Map(previous.map((pick) => [pick.name.toLowerCase(), pick]));
+  const nextByName = new Map(next.map((pick) => [pick.name.toLowerCase(), pick]));
+  const added = next.filter((pick) => !previousByName.has(pick.name.toLowerCase())).map((pick) => pick.name);
+  const removed = previous.filter((pick) => !nextByName.has(pick.name.toLowerCase())).map((pick) => pick.name);
+  const preserved = previous.filter((pick) => nextByName.has(pick.name.toLowerCase()) && preservedNames.some((name) => name.toLowerCase() === pick.name.toLowerCase())).map((pick) => pick.name);
+  const changes = [added.length ? `Added ${added.join(", ")}.` : "", removed.length ? `Removed ${removed.join(", ")}.` : ""].filter(Boolean).join(" ");
+  return { id: "", constraint, summary: changes || "The constraint changed the implementation guidance without replacing the selected stack.", preserved, added, removed };
 }
 
 export function deferredSuggestionsFor(project: string, profile: ReturnType<typeof inferProfile>, picks: StackPick[]): DeferredSuggestion[] {
@@ -432,6 +490,9 @@ export function buildIntelPacket(items: IntelItem[], focusText = ""): IntelEvide
     : (agentPractice.length ? agentPractice : aboveThreshold).slice(0, 4);
   const mapped = selected.map((item) => {
     const evidence = `${item.title} ${item.why ?? ""} ${item.summary ?? ""} ${(item.takeaways ?? []).join(" ")}`;
+    const rawGuidance = [item.takeaways?.find((value) => value.trim().length >= 24), item.why, item.summary, item.description]
+      .find((value) => typeof value === "string" && value.trim().length >= 24 && !/:\s*$/.test(value.trim()));
+    const fallbackGuidance = rawGuidance?.trim() || `Review “${item.title}” before making the related implementation decision, then record the concrete choice and verification evidence.`;
     const instruction = /evaluator|over-praise|planner|generator/i.test(evidence)
       ? "Define acceptance criteria before implementation, then have a fresh evaluator review the finished result instead of letting the builder grade its own work."
       : /eval|quality gate|test suite|verification/i.test(evidence)
@@ -440,7 +501,7 @@ export function buildIntelPacket(items: IntelItem[], focusText = ""): IntelEvide
           ? "Write project commands, constraints, architecture, and quality gates into repository context; keep tasks bounded and start a fresh context when the working history becomes noisy."
           : /harness|tools|memory|permissions|receipt/i.test(evidence)
             ? "Treat the agent harness as part of the product: scope tool permissions, record consequential actions, and verify that mutations reached the user-visible system."
-            : `Apply this project-relevant guidance during implementation: ${item.why || item.summary || item.description || "review the cited source before making the decision"}`;
+            : fallbackGuidance;
     return {
     id: item.id,
     title: item.title,
@@ -454,6 +515,41 @@ export function buildIntelPacket(items: IntelItem[], focusText = ""): IntelEvide
     };
   });
   return [...new Map(mapped.map((item) => [item.instruction, item])).values()].slice(0, 4);
+}
+
+const catalogIdentity = (value: string) => value.toLowerCase()
+  .replace(/\b(official|agent|agents|server|plugin|extension|tool|tools|skill|skills|suite|mcp|cli)\b/g, " ")
+  .replace(/[^a-z0-9]+/g, " ")
+  .trim();
+
+export function verifyWorkspacePicks(picks: StackPick[], catalog: CatalogApp[]): StackPick[] {
+  const maintained = catalog.filter((item) => item.maintained !== false && (item.url || item.github_url));
+  return picks.map((pick) => {
+    if (pick.branch !== "build" || pick.id === "vibe-intel") return pick;
+    const pickIdentity = catalogIdentity(pick.name);
+    const match = maintained.find((item) => {
+      const kind = pick.kind.toLowerCase();
+      const compatible = kind.includes("mcp")
+        ? item.tool_type === "mcp_server" || item.interfaces?.includes("mcp")
+        : kind.includes("skill")
+          ? item.tool_type === "extension" && item.interfaces?.includes("agent_skill")
+          : /cli|diagnostic/.test(kind)
+            ? item.interfaces?.includes("cli") || ["utility", "dev_toolchain"].includes(item.tool_type ?? "")
+            : true;
+      if (!compatible) return false;
+      const itemIdentity = catalogIdentity(item.title);
+      if (!pickIdentity || !itemIdentity) return false;
+      return itemIdentity === pickIdentity
+        || pickIdentity.length >= 12 && itemIdentity.includes(pickIdentity)
+        || itemIdentity.length >= 12 && pickIdentity.includes(itemIdentity);
+    });
+    return {
+      ...pick,
+      evidence: match
+        ? { status: "catalog-verified", catalogTitle: match.title, catalogUrl: match.github_url || match.url || undefined }
+        : { status: "official-mapping" },
+    };
+  });
 }
 
 export function buildCatalogPacket(apps: CatalogApp[], preferredNames: string[] = [], focusText = ""): CatalogEvidence[] {
@@ -504,6 +600,7 @@ export function ResearchDesk() {
   const [intelEvidence, setIntelEvidence] = useState<IntelEvidence[]>([]);
   const [executionEvidence, setExecutionEvidence] = useState<CatalogEvidence[]>([]);
   const [deferredSuggestions, setDeferredSuggestions] = useState<DeferredSuggestion[]>([]);
+  const [revisionHistory, setRevisionHistory] = useState<BlueprintRevision[]>([]);
   const [selectedPick, setSelectedPick] = useState<StackPick | null>(null);
   const [renderedPlan, setRenderedPlan] = useState<RenderedPlan | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -516,6 +613,7 @@ export function ResearchDesk() {
   const intelEvidenceRef = useRef(intelEvidence);
   const executionEvidenceRef = useRef(executionEvidence);
   const deferredSuggestionsRef = useRef(deferredSuggestions);
+  const revisionHistoryRef = useRef(revisionHistory);
   const revealTimerRef = useRef<number | null>(null);
   const dialogRef = useRef<HTMLElement | null>(null);
   const dialogCloseRef = useRef<HTMLButtonElement | null>(null);
@@ -524,6 +622,7 @@ export function ResearchDesk() {
   useEffect(() => void (intelEvidenceRef.current = intelEvidence), [intelEvidence]);
   useEffect(() => void (executionEvidenceRef.current = executionEvidence), [executionEvidence]);
   useEffect(() => void (deferredSuggestionsRef.current = deferredSuggestions), [deferredSuggestions]);
+  useEffect(() => void (revisionHistoryRef.current = revisionHistory), [revisionHistory]);
 
   useEffect(() => () => { if (revealTimerRef.current) window.clearInterval(revealTimerRef.current); }, []);
   useEffect(() => {
@@ -545,13 +644,14 @@ export function ResearchDesk() {
     return () => { window.removeEventListener("keydown", close); document.body.style.overflow = previousOverflow; previousFocus?.focus(); };
   }, [selectedPick]);
 
-  const buildBlueprint = useCallback(async (nextBrief: string) => {
+  const buildBlueprint = useCallback(async (nextBrief: string, options: { keepRevisions?: boolean } = {}) => {
     const project = clean(nextBrief, 600);
     if (!project) throw new Error("Describe the software project before drawing its blueprint.");
     const profile = inferProfile(project);
     setBrief(project); setProjectKind(profile.projectKind); setPriority(profile.priority); setStage(profile.stage);
     profileRef.current = { brief: project, ...profile };
     setRenderedPlan(null); setUnlockedCount(0); setStackPicks([]); stackPicksRef.current = []; setIntelEvidence([]); intelEvidenceRef.current = []; setExecutionEvidence([]); executionEvidenceRef.current = []; setDeferredSuggestions([]); deferredSuggestionsRef.current = []; setSelectedPick(null); setStarted(true); setBuilding(true); setError(null);
+    if (!options.keepRevisions) { setRevisionHistory([]); revisionHistoryRef.current = []; }
     setActivity("Surveying maintained tools and consulting current Intel…");
     if (revealTimerRef.current) window.clearInterval(revealTimerRef.current);
 
@@ -568,10 +668,14 @@ export function ResearchDesk() {
       toolQueries.unshift({ query: `${workspaceQuery} project-specific implementation skills code quality performance`, filters: { tool_type: "extension", interface: "agent_skill", topic: "coding", open_source: true }, take: 2, allowedTypes: ["extension"] });
       toolQueries.push({ query: `${workspaceQuery} professional interface design accessibility animation anti-slop`, filters: { tool_type: "extension", interface: "agent_skill", topic: "design_media", open_source: true }, take: 2, allowedTypes: ["extension"] });
     }
-    const connectorParents = ["Supabase", "Sentry", "Stripe", "Vercel", "Shopify"];
+    const connectorParents = ["Expo", "Supabase", "Sentry", "Stripe", "Vercel", "Shopify"];
     draftPicks.filter((pick) => connectorParents.includes(pick.name)).forEach((pick) => {
       toolQueries.push({ query: `${pick.name} official MCP server for development`, filters: { tool_type: "mcp_server", interface: "mcp" }, take: 1, requiredTitle: pick.name });
     });
+    if (profile.projectKind === "mobile") {
+      toolQueries.push({ query: "Expo React Native NativeWind Callstack official implementation agent skills", filters: { tool_type: "extension", interface: "agent_skill", topic: "coding", open_source: true }, take: 6, allowedTypes: ["extension"] });
+      toolQueries.push({ query: "React Doctor Expo Doctor agent-device mobile diagnostics simulator verification", filters: { topic: "testing_evaluation", open_source: true }, take: 4, allowedTypes: ["extension", "utility", "dev_toolchain", "library_framework"] });
+    }
     const riskQuery = profile.projectKind === "service"
       ? "API load testing observability event streaming schema reliability"
       : profile.projectKind === "mobile"
@@ -618,7 +722,9 @@ export function ResearchDesk() {
     setIntelEvidence(research); intelEvidenceRef.current = research;
     setExecutionEvidence(execution); executionEvidenceRef.current = execution;
     setDeferredSuggestions(deferred); deferredSuggestionsRef.current = deferred;
-    const picks = draftPicks.map((pick) => pick.id === "vibe-intel" ? { ...pick, why: research.length || execution.length
+    const verifiedDraft = verifyWorkspacePicks(draftPicks, uniqueTools);
+    const verifiedCount = verifiedDraft.filter((pick) => pick.evidence?.status === "catalog-verified").length;
+    const picks = verifiedDraft.map((pick) => pick.id === "vibe-intel" ? { ...pick, why: research.length || execution.length
       ? `Produced ${research.length} source-backed project instruction${research.length === 1 ? "" : "s"} and found ${execution.length} maintained workspace candidate${execution.length === 1 ? "" : "s"}. Only relevant engineering guidance becomes an instruction.`
       : researchNote } : pick);
     setStackPicks(picks); stackPicksRef.current = picks;
@@ -637,18 +743,19 @@ export function ResearchDesk() {
           revealTimerRef.current = null; setBuilding(false);
           setActivity(deferred.length ? `Prototype ready. ${deferred.length} production-only tool${deferred.length === 1 ? " is" : "s are"} intentionally deferred.` : "Blueprint ready. Click any logo to review the pick.");
         }
-      }, 560);
+      }, 320);
     }
     return {
       project,
       profile,
       stack: picks,
       toolMatches: uniqueTools.length,
+      catalogVerifiedPicks: verifiedCount,
       deferred,
       decisionMethod: {
         productStack: "Infer project shape, stage, priority, constraints, and required capabilities; omit services contradicted by the brief.",
-        companionTools: "Attach MCPs and diagnostics only when their parent technology is selected, such as Supabase MCP for Supabase or React Doctor for React.",
-        skills: "Use VibeLeaderboard Type=extension plus Interface=agent_skill to find first-party and production-practitioner skills tied to the selected stack. For Expo, install exact official Expo skills plus React Native testing and device tooling; for React web, pair deterministic diagnostics with design and performance review skills.",
+        companionTools: "Start from curated technology-to-tool mappings, then query VibeLeaderboard's maintained catalog and mark matching workspace picks as catalog verified. Unsupported catalog candidates stay out of the drawing.",
+        skills: "Search VibeLeaderboard with Type=extension and Interface=agent_skill, verify matching first-party and practitioner skills against the selected stack, and retain the official source for every curated fallback.",
         intel: "Filter current Intel to this project's engineering risks and translate each retained source into an imperative execution instruction. Do not return a generic reading list.",
       },
       research: {
@@ -661,10 +768,34 @@ export function ResearchDesk() {
         intel: research,
         executionPlaybook: research.map(({ instruction, intelUrl, title }) => ({ instruction, source: title, intelUrl })),
         executionCandidates: execution,
-        instruction: "Execute the project-specific playbook, then evaluate workspace candidates against the selected technologies and project constraints. Verify consequential claims at original sources and call refine_project_blueprint only when a replacement materially improves this project.",
+        instruction: "Execute the project-specific playbook, then evaluate workspace candidates against the selected technologies and project constraints. Verify consequential claims at original sources. Use apply_project_constraint when the user adds a requirement, and reserve refine_project_blueprint for a complete evidence-backed replacement.",
       },
     };
   }, []);
+
+  const applyConstraint = useCallback(async (rawConstraint: unknown, rawPreserve: unknown) => {
+    const constraint = clean(rawConstraint, 400);
+    if (!constraint) throw new Error("Describe the constraint to apply to the current blueprint.");
+    const previous = stackPicksRef.current;
+    if (!previous.length) throw new Error("Build a project blueprint before applying a constraint.");
+    const previousProfile = profileRef.current;
+    const requested = Array.isArray(rawPreserve) ? rawPreserve.map((value) => clean(value, 100)).filter(Boolean) : [];
+    const inferred = previous.filter((pick) => new RegExp(`\\bkeep\\s+(?:the\\s+)?${pick.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(constraint)).map((pick) => pick.name);
+    const preserveNames = [...new Set([...requested, ...inferred])];
+    const revisedBrief = `${previousProfile.brief}\nAdditional constraint: ${constraint}`;
+    const result = await buildBlueprint(revisedBrief, { keepRevisions: true });
+    if (revealTimerRef.current) { window.clearInterval(revealTimerRef.current); revealTimerRef.current = null; }
+    const generated = result.stack;
+    const preservedMissing = previous.filter((pick) => preserveNames.some((name) => name.toLowerCase() === pick.name.toLowerCase()) && !generated.some((candidate) => candidate.name.toLowerCase() === pick.name.toLowerCase()));
+    const revised = [...generated, ...preservedMissing].slice(0, 30);
+    const baseRevision = summarizeRevision(previous, revised, constraint, preserveNames);
+    const revision = { ...baseRevision, id: `REV ${String(revisionHistoryRef.current.length + 2).padStart(2, "0")}` };
+    const history = [revision, ...revisionHistoryRef.current].slice(0, 6);
+    setStackPicks(revised); stackPicksRef.current = revised; setUnlockedCount(revised.length); setBuilding(false); setSelectedPick(null);
+    setRevisionHistory(history); revisionHistoryRef.current = history;
+    setActivity(`${revision.id} applied. ${revision.summary}`);
+    return { revised: true, project: profileRef.current, revision, stack: revised, research: result.research };
+  }, [buildBlueprint]);
 
   const blueprintText = useMemo(() => {
     const lines = stackPicks.map((pick) => `- ${pick.kind}: ${pick.name}. ${pick.role}`);
@@ -692,8 +823,9 @@ export function ResearchDesk() {
     const controller = new AbortController();
     const register = async () => {
       const tools: WebMCP.ModelContextTool[] = [
-        { name: "build_project_blueprint", description: "Infer a project profile, draft a specific stack and AI execution system, survey maintained execution tools, gather a cited Intel packet, and draw the result. The returned evidence must be reasoned over rather than copied.", inputSchema: { type: "object", properties: { project: { type: "string", description: "What the user wants to build, in ordinary language" } }, required: ["project"] }, execute: async (input) => { try { const result = await buildBlueprint(clean(input.project)); return toolText({ built: true, ...result, instruction: "Treat the visible stack as a researched first draft, not a verdict. A conventional stack can be correct; the extra value is an execution system that helps the coding agent deliver it professionally. Compare the draft against constraints, Intel, and execution-tool candidates. Call refine_project_blueprint with the complete corrected stack and applicable execution skills before explaining the answer." }); } catch (cause) { return safeToolError(cause); } } },
-        { name: "inspect_project_blueprint", description: "Inspect the complete specific stack or one named pick, including Intel, execution-tool, and deferred-production context gathered during the build.", inputSchema: { type: "object", properties: { pickId: { type: "string", description: "Optional pick id; omit to inspect the full selected stack" } } }, execute: async (input) => { const pickId = clean(input.pickId, 80); const picks = stackPicksRef.current; return toolText({ project: profileRef.current, picks: pickId ? picks.filter((item) => item.id === pickId) : picks, deferred: deferredSuggestionsRef.current, research: { intel: intelEvidenceRef.current, executionCandidates: executionEvidenceRef.current }, instruction: "Explain the selected tool directly and use the gathered context when relevant. Execution candidates are evidence, not authority. Do not introduce a comparison grid unless the user asks for alternatives." }); } },
+        { name: "build_project_blueprint", description: "Infer a project profile, draft a specific stack and AI execution system, survey maintained execution tools, gather a cited Intel packet, and draw the result. The returned evidence must be reasoned over rather than copied.", inputSchema: { type: "object", properties: { project: { type: "string", description: "What the user wants to build, in ordinary language" } }, required: ["project"] }, execute: async (input) => { try { const result = await buildBlueprint(clean(input.project)); return toolText({ built: true, ...result, instruction: "Treat the visible stack as a researched first draft, not a verdict. Explain or question a choice with inspect_project_blueprint. When the user adds a requirement, call apply_project_constraint so the shared page records what stayed or changed. Reserve refine_project_blueprint for a complete evidence-backed replacement." }); } catch (cause) { return safeToolError(cause); } } },
+        { name: "inspect_project_blueprint", description: "Explain why one visible blueprint choice was selected, including its role, tradeoff, alternatives, source, and current revision context. Opens the same explanation on the shared page.", inputSchema: { type: "object", properties: { pickId: { type: "string", description: "Pick id such as expo or supabase" }, pickName: { type: "string", description: "Visible pick name when the id is unknown" } } }, annotations: { readOnlyHint: true }, execute: async (input) => { try { const pickId = clean(input.pickId, 80).toLowerCase(); const pickName = clean(input.pickName, 100).toLowerCase(); const picks = stackPicksRef.current; if (!picks.length) throw new Error("Build a project blueprint before inspecting a choice."); const pick = picks.find((item) => item.id.toLowerCase() === pickId || item.name.toLowerCase() === pickName || item.name.toLowerCase() === pickId); if (!pick && (pickId || pickName)) throw new Error(`No blueprint choice matched “${pickName || pickId}”.`); if (!pick) return toolText({ project: profileRef.current, picks, revisions: revisionHistoryRef.current, deferred: deferredSuggestionsRef.current, research: { intel: intelEvidenceRef.current, executionCandidates: executionEvidenceRef.current } }); const context = choiceContextFor(pick); setSelectedPick(pick); setActivity(`Reviewing ${pick.name}. ${pick.role}`); return toolText({ project: profileRef.current, pick, ...context, revisions: revisionHistoryRef.current, instruction: "Explain why this choice fits the project and name its real tradeoff. The same explanation is now open on the shared page." }); } catch (cause) { return safeToolError(cause); } } },
+        { name: "apply_project_constraint", description: "Revise the current visible blueprint for a new requirement such as offline-first behavior, lower cost, privacy, scale, or a technology that must remain. Reconsults current tools and Intel, records what was preserved, added, or removed, and redraws the shared page.", inputSchema: { type: "object", properties: { constraint: { type: "string", description: "The new project requirement in ordinary language" }, preservePicks: { type: "array", items: { type: "string" }, description: "Optional visible pick names that must remain, such as Expo" } }, required: ["constraint"] }, execute: async (input) => { try { return toolText(await applyConstraint(input.constraint, input.preservePicks)); } catch (cause) { return safeToolError(cause); } } },
         {
           name: "refine_project_blueprint",
           description: "Replace the researched first draft with a complete evidence-backed stack after reasoning about project constraints, Intel, and maintained execution-tool candidates.",
@@ -739,14 +871,14 @@ export function ResearchDesk() {
       catch (cause) { if (!controller.signal.aborted) { setWebMcp("unavailable"); setError(cause instanceof Error ? cause.message : "WebMCP registration failed."); } }
     };
     void register(); return () => controller.abort();
-  }, [buildBlueprint, searchEvidence]);
+  }, [applyConstraint, buildBlueprint, searchEvidence]);
 
   const submit = (event: FormEvent) => { event.preventDefault(); void buildBlueprint(brief).catch((cause) => { setBuilding(false); setError(cause instanceof Error ? cause.message : "Could not build blueprint."); }); };
   const visiblePicks = stackPicks.slice(0, unlockedCount);
   const branches: Array<{ id: StackPick["branch"]; label: string; sheet: string }> = [{ id: "build", label: "EQUIPPED AI WORKSPACE", sheet: "SHEET A" }, { id: "product", label: "APPLICATION", sheet: "SHEET B" }, { id: "services", label: "SHIP + OPERATE", sheet: "SHEET C" }];
   const buildGroups = [{ id: "core", label: "HARNESS + MODEL" }, { id: "mcp", label: "CONNECTED MCPS" }, { id: "cli", label: "DIAGNOSTICS + QA" }, { id: "intel", label: "EXECUTION PLAYBOOK" }, { id: "skills", label: "PROJECT SKILLS" }];
   const buildGroupFor = (pick: StackPick) => pick.id === "vibe-intel" ? "intel" : pick.kind.toLowerCase().includes("mcp") || pick.name.endsWith("MCP") ? "mcp" : pick.kind.toLowerCase().includes("skill") ? "skills" : /cli|diagnostic/i.test(pick.kind) ? "cli" : "core";
-  const pickButton = (pick: StackPick) => <button type="button" className="tool-pick" key={pick.id} onClick={() => setSelectedPick(pick)} aria-label={`Review why ${pick.name} was selected`}><span className="tool-logo"><i>{pick.name.slice(0, 1)}</i><img src={pick.icon} alt="" onError={(event) => { event.currentTarget.style.display = "none"; }} /></span><span className="tool-copy"><b>{pick.name}</b><small>{pick.kind}</small></span><em>+</em></button>;
+  const pickButton = (pick: StackPick) => <button type="button" className="tool-pick" key={pick.id} onClick={() => setSelectedPick(pick)} aria-label={`Review why ${pick.name} was selected`}><span className="tool-logo"><i>{pick.name.slice(0, 1)}</i><img src={pick.icon} alt="" onError={(event) => { event.currentTarget.style.display = "none"; }} /></span><span className="tool-copy"><b>{pick.name}</b><small>{pick.kind}</small>{pick.evidence?.status === "catalog-verified" && <small className="catalog-verified">CATALOG VERIFIED</small>}</span><em>+</em></button>;
   const complete = started && !building && stackPicks.length > 0;
 
   return <main className="stack-picker-page">
@@ -757,9 +889,10 @@ export function ResearchDesk() {
     <form className="idea-form" onSubmit={submit}><label htmlFor="project-brief">WHAT ARE YOU BUILDING?</label><div><textarea id="project-brief" value={brief} onChange={(event) => setBrief(event.target.value)} maxLength={600} /><button type="submit" disabled={building}>{building ? "BUILDING…" : "BUILD MY STACK"}</button></div>{started && <small>{PROJECT_KINDS.find((item) => item.id === projectKind)?.label} · {STAGES.find((item) => item.id === stage)?.label} · {PRIORITIES.find((item) => item.id === priority)?.label}</small>}</form>
     {error && <div className="picker-error" role="alert">{error}</div>}
 
-    <section className={`stack-result ${started ? "started" : ""}`} aria-labelledby="stack-title"><header><div><span>ISSUED FOR BUILD</span><h2 id="stack-title">Project drawing set</h2></div>{started && <b>REV {String(unlockedCount).padStart(2, "0")}</b>}</header>
+    <section className={`stack-result ${started ? "started" : ""}`} aria-labelledby="stack-title"><header><div><span>ISSUED FOR BUILD</span><h2 id="stack-title">Project drawing set</h2></div>{started && <b>{building ? `DRAW ${String(unlockedCount).padStart(2, "0")}` : revisionHistory[0]?.id ?? "REV 01"}</b>}</header>
       {!started ? <div className="stack-empty"><i>+</i><p>Your connected stack will appear here.</p></div> : <>
         <div className={`build-narrator ${complete ? "complete" : ""}`} aria-live="polite"><span>{complete ? "READY" : "ARCHITECT"}</span><p>{activity}</p></div>
+        {revisionHistory[0] && <aside className="revision-card" aria-label="Latest agent revision"><header><span>{revisionHistory[0].id}</span><b>AGENT-APPLIED CONSTRAINT</b></header><p>{revisionHistory[0].constraint}</p><div>{revisionHistory[0].preserved.length > 0 && <span><small>KEPT</small>{revisionHistory[0].preserved.join(", ")}</span>}{revisionHistory[0].added.length > 0 && <span><small>ADDED</small>{revisionHistory[0].added.join(", ")}</span>}{revisionHistory[0].removed.length > 0 && <span><small>REMOVED</small>{revisionHistory[0].removed.join(", ")}</span>}</div></aside>}
         <div className="stack-tree"><div className="project-node"><span>PROJECT</span><b>{brief}</b></div><div className="tree-trunk" aria-hidden="true" />
           <div className="stack-branches">{branches.map((branch) => <section className={`stack-branch branch-${branch.id}`} key={branch.id}><h3><span>{branch.sheet}</span>{branch.label}</h3>{branch.id === "build" ? <div className="pick-groups">{buildGroups.map((group) => { const groupPicks = visiblePicks.filter((pick) => pick.branch === "build" && buildGroupFor(pick) === group.id); return groupPicks.length ? <div className="pick-subgroup" key={group.id}><span>{group.label}</span><div className="pick-list">{groupPicks.map(pickButton)}</div></div> : null; })}</div> : <div className="pick-list">{visiblePicks.filter((pick) => pick.branch === branch.id).map(pickButton)}</div>}</section>)}</div>
         </div>
@@ -769,6 +902,6 @@ export function ResearchDesk() {
 
     <footer className="picker-footer"><span>PUBLIC TOOL SURVEY + INTEL</span><a href={PUBLIC_MCP_URL}>VIBELEADERBOARD MCP ↗</a></footer>
 
-    {selectedPick && typeof document !== "undefined" && createPortal(<div className="pick-dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedPick(null); }}><article ref={dialogRef} className={`pick-dialog ${selectedPick.id === "vibe-intel" ? "intel-dialog" : ""}`} role="dialog" aria-modal="true" aria-labelledby="pick-dialog-title" aria-describedby="pick-dialog-role"><button ref={dialogCloseRef} className="dialog-close" type="button" onClick={() => setSelectedPick(null)} aria-label="Close explanation">×</button><div className="dialog-title"><span className="dialog-logo"><i>{selectedPick.name.slice(0, 1)}</i><img src={selectedPick.icon} alt="" onError={(event) => { event.currentTarget.style.display = "none"; }} /></span><div><span>{selectedPick.kind}</span><h2 id="pick-dialog-title">{selectedPick.name}</h2></div></div><p className="dialog-role" id="pick-dialog-role">{selectedPick.role}</p><section><span>WHY THIS PICK</span><p>{selectedPick.why}</p></section>{selectedPick.id === "vibe-intel" && <>{executionEvidence.length > 0 && <section className="intel-sources"><span>WORKSPACE CANDIDATES CHECKED</span><ul>{executionEvidence.map((item) => <li key={item.id}><a href={item.url} target="_blank" rel="noreferrer"><b>{item.title}</b><small>{item.category ?? "TOOL"}</small></a><p>{item.why}</p></li>)}</ul><p className="evidence-caution">Candidates only enter the blueprint when they match a selected technology or close a specific execution gap.</p></section>}{intelEvidence.length > 0 && <section className="intel-sources"><span>PROJECT INSTRUCTIONS EXTRACTED</span><ul>{intelEvidence.map((item) => <li key={item.id}><a href={item.intelUrl} target="_blank" rel="noreferrer"><b>{item.instruction}</b><small>{item.source ?? "Vibe Intel"}</small></a><p>Evidence: {item.title}. {item.takeaway}</p></li>)}</ul></section>}</>}<a href={selectedPick.sourceUrl} target="_blank" rel="noreferrer">OPEN OFFICIAL SOURCE ↗</a></article></div>, document.body)}
+    {selectedPick && typeof document !== "undefined" && createPortal(<div className="pick-dialog-backdrop" onMouseDown={(event) => { if (event.target === event.currentTarget) setSelectedPick(null); }}><article ref={dialogRef} className={`pick-dialog ${selectedPick.id === "vibe-intel" ? "intel-dialog" : ""}`} role="dialog" aria-modal="true" aria-labelledby="pick-dialog-title" aria-describedby="pick-dialog-role"><button ref={dialogCloseRef} className="dialog-close" type="button" onClick={() => setSelectedPick(null)} aria-label="Close explanation">×</button><div className="dialog-title"><span className="dialog-logo"><i>{selectedPick.name.slice(0, 1)}</i><img src={selectedPick.icon} alt="" onError={(event) => { event.currentTarget.style.display = "none"; }} /></span><div><span>{selectedPick.kind}</span><h2 id="pick-dialog-title">{selectedPick.name}</h2></div></div><p className="dialog-role" id="pick-dialog-role">{selectedPick.role}</p><section><span>WHY THIS PICK</span><p>{selectedPick.why}</p></section><section><span>REAL TRADEOFF</span><p>{choiceContextFor(selectedPick).tradeoff}</p>{choiceContextFor(selectedPick).alternatives.length > 0 && <p className="dialog-alternatives">Other paths: {choiceContextFor(selectedPick).alternatives.join(" · ")}</p>}</section>{revisionHistory[0] && <section><span>CURRENT REVISION</span><p>{revisionHistory[0].constraint}</p></section>}{selectedPick.id === "vibe-intel" && <>{executionEvidence.length > 0 && <section className="intel-sources"><span>WORKSPACE CANDIDATES CHECKED</span><ul>{executionEvidence.map((item) => <li key={item.id}><a href={item.url} target="_blank" rel="noreferrer"><b>{item.title}</b><small>{item.category ?? "TOOL"}</small></a><p>{item.why}</p></li>)}</ul><p className="evidence-caution">Candidates only enter the blueprint when they match a selected technology or close a specific execution gap.</p></section>}{intelEvidence.length > 0 && <section className="intel-sources"><span>PROJECT INSTRUCTIONS EXTRACTED</span><ul>{intelEvidence.map((item) => <li key={item.id}><a href={item.intelUrl} target="_blank" rel="noreferrer"><b>{item.instruction}</b><small>{item.source ?? "Vibe Intel"}</small></a><p>Evidence: {item.title}. {item.takeaway}</p></li>)}</ul></section>}</>}<a href={selectedPick.sourceUrl} target="_blank" rel="noreferrer">OPEN OFFICIAL SOURCE ↗</a></article></div>, document.body)}
   </main>;
 }

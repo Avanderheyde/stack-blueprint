@@ -7,7 +7,8 @@ The following browser evals follow Chrome's WebMCP guidance: test whether an age
 | User intent | Expected call | Acceptance criteria |
 |---|---|---|
 | "What should I use to build a roommate fridge app?" | `build_project_blueprint({ project })` | The visible drawing starts; result classifies it as a mobile prototype; includes Expo/React Native/NativeWind plus Expo MCP, exact Expo skills, React/Expo diagnostics, agent-device, and Supabase tooling; excludes payments. |
-| "Why did you choose Expo MCP?" after a build | `inspect_project_blueprint({ pickId: "expo-mcp" })` | Returns only the requested node and explains current Expo/EAS/simulator context; visible explanation can be opened from the same node. |
+| "Why did you choose Expo?" after a build | `inspect_project_blueprint({ pickName: "Expo" })` | Returns the requested choice, its real tradeoff and alternatives, and opens the same explanation on the shared page. |
+| "Keep Expo, but optimize this for an offline-first prototype" | `apply_project_constraint({ constraint, preservePicks: ["Expo"] })` | Reconsults the project context, preserves Expo, adds Expo SQLite, NetInfo, and `expo-examples`, records revision 02, and redraws the visible blueprint. |
 | "Find current alternatives for mobile agent testing" | `survey_stack_tools({ query, limit })` | Returns bounded, sanitized public catalog data and identifies it as untrusted evidence; does not alter the blueprint. |
 | "What current evidence should change this workflow?" | `consult_stack_intel({ query, limit })` | Returns public Intel summaries with citations and an untrusted-content boundary; no article bodies or transcripts. |
 | "Replace NativeWind with StyleSheet after considering bundle constraints" | `refine_project_blueprint({ reasoning, picks })` | Requires a complete replacement plan, preserves valid source URLs, updates the visible drawing, and records the reason. |
@@ -28,10 +29,11 @@ The following browser evals follow Chrome's WebMCP guidance: test whether an age
 ## Pre-submission browser run
 
 1. Open the deployed URL in ChatGPT's in-app browser.
-2. Confirm all six tools are discovered.
+2. Confirm all seven tools are discovered.
 3. Run the roommate-fridge build journey above through WebMCP.
 4. Confirm the visible page changes and the returned structured result agree.
-5. Inspect Expo MCP and Vibe Intel.
-6. Run one refinement, then render and copy the implementation brief.
-7. Repeat in Chrome 149+ with `#enable-webmcp-testing` if available.
-8. Check console logs, keyboard focus, reduced motion, mobile layout, upstream partial failure, and signed-out access.
+5. Inspect Expo and confirm the explanation opens on the page with a tradeoff and alternatives.
+6. Apply the offline-first constraint and confirm revision 02 preserves Expo and adds Expo SQLite, NetInfo, and `expo-examples`.
+7. Render and copy the implementation brief.
+8. Repeat in Chrome 149+ with `#enable-webmcp-testing` if available.
+9. Check console logs, keyboard focus, reduced motion, mobile layout, upstream partial failure, and signed-out access.
