@@ -2,14 +2,18 @@
 
 The Remotion project renders the public demo in `video/out/`. That directory is intentionally ignored because rendered media should not be committed to the source repository.
 
-## Required local assets
+## Included assets
 
-Place these files in `video/public/` before rendering:
+The repository includes the assets needed to render the final cut:
 
 - `voiceover.m4a`: the cleaned complete narration
 - `captions.json`: caption objects using the Remotion `Caption` shape
+- `ambient-bed.wav`: the quiet background bed
+- `live-webmcp-*.png`: captures from the deployed application
 
 Brand marks and any additional visual assets also belong in `video/public/` and should be referenced with `staticFile()`.
+
+The `live-webmcp-*.png` frames were captured from the deployed application in Codex's in-app browser while its registered WebMCP tools built, inspected, and revised the visible blueprint. The dark tool-call receipts beside those frames are editorial Remotion overlays that label the real calls; they are not browser chrome.
 
 ## Render
 

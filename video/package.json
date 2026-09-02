@@ -4,6 +4,7 @@
   "version": "0.1.0",
   "scripts": {
     "studio": "remotion studio src/index.ts",
+    "typecheck": "tsc --noEmit",
     "render": "remotion render src/index.ts StackBlueprintDemo out/stack-blueprint-demo.mp4 --codec=h264 --crf=18",
     "still": "remotion still src/index.ts StackBlueprintDemo out/stack-blueprint-demo-poster.png --frame=45"
   },
